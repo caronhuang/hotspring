@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA ON-SEN | 世界溫泉巡禮・身心靈療癒地圖</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS & JS (100% Free OpenStreetMap) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', '"Noto Serif TC"', 'serif'],
+            display: ['"Playfair Display"', '"Noto Serif TC"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            wellness: {
+              cream: '#FAF8F5',
+              sand: '#F3EFEA',
+              sandstone: '#E8E1D7',
+              moss: '#3B4D3C',
+              forest: '#263427',
+              earth: '#8C684E',
+              terracotta: '#BA6B50',
+              gold: '#C5A880',
+              charcoal: '#232523',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+      background-color: #FAF8F5;
+      color: #232523;
+    }
+    .leaflet-container {
+      width: 100%;
+      height: 100%;
+      background-color: #f4efe9;
+      font-family: inherit;
+    }
+    .custom-wellness-marker {
+      background: none;
+      border: none;
+    }
+    .leaflet-popup-content-wrapper {
+      padding: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 20px 30px -10px rgba(38, 52, 39, 0.15);
+      border: 1px solid #E8E1D7;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      line-height: inherit;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FAF8F5;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D8D0C5;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #BA6B50;
+    }
+  </style>
+</head>
+<body class="bg-wellness-cream text-wellness-charcoal overflow-hidden antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useMemo, useEffect } = React;
+
+    const Icons = {
+      Leaf: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      ),
+      Sparkles: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      ),
+      Search: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      ),
+      Plus: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      ),
+      X: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      ),
+      Sliders: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
+      ),
+      Compass: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      ),
+      Droplets: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
+      ),
+      Globe: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      ),
+      Download: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      ),
+      Edit: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      ),
+      Trash: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      ),
+      Check: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      ),
+      Activity: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      )
+    };
+
+    const translations = {
+      zh: {
+        brand: "靈泉行旅",
+        badge: "身心靈療癒巡禮",
+        subtagline: "探索全球大地滋養之水・心靈療癒與隱世名湯地圖",
+        searchPlaceholder: "尋訪秘境名湯、泉質成分或所在地點...",
+        allTypes: "所有名湯型態",
+        allMinerals: "全系列泉質成分",
+        wildSpring: "自然野溪・原生態秘湯",
+        localFeature: "人文古韻・在地名湯",
+        historicRyokan: "傳承名宿・百年老舖",
+        luxuryResort: "奢華水療・頂級靜修",
+        sulfur: "白濁硫磺泉",
+        carbonated: "碳酸氫鈉泉",
+        chloride: "深層氯化物泉",
+        iron: "金褐色鐵泉",
+        viewMode: "感知圖層",
+        normalLayer: "經典地標",
+        heatmapLayer: "地熱能量場",
+        priceRange: "體驗預算",
+        priceUnit: "美元",
+        exportJson: "導出收藏",
+        copied: "已複製至剪貼簿",
+        newMarkerTitle: "銘刻新的溫泉記憶",
+        editMarkerTitle: "編輯溫泉筆記",
+        nameLabel: "湯宿與名湯名稱",
+        typeLabel: "療癒型態",
+        visitedYearLabel: "造訪年份",
+        ratingLabel: "心靈契合度 (評分)",
+        mineralLabel: "核心泉質",
+        priceLabel: "平均客單價 (美元)",
+        descLabel: "靜修感受與隨筆筆記",
+        imgUrlLabel: "影像連結 (網址)",
+        saveBtn: "珍藏標注",
+        deleteBtn: "移除記憶",
+        editBtn: "編輯筆記",
+        cancelBtn: "返回",
+        visited: "造訪年份",
+        avgSpend: "預算級距",
+        ingredients: "泉質成分",
+        coordinates: "地理坐標",
+        latLabel: "緯度",
+        lngLabel: "經度",
+        clickToAddTip: "在世界地圖任意空白處點擊，即可留下您專屬的溫泉印記。",
+        quickJump: "焦點名湯目的地："
+      },
+      en: {
+        brand: "AURA ON-SEN",
+        badge: "Holistic Retreat",
+        subtagline: "A Curated Atlas of Global Healing Waters & Sanctuary Springs",
+        searchPlaceholder: "Search sanctuaries, mineral waters, or regions...",
+        allTypes: "All Sanctuaries",
+        allMinerals: "All Mineral Compositions",
+        wildSpring: "Wild River Spring",
+        localFeature: "Cultural Heritage Spring",
+        historicRyokan: "Historic Ryokan",
+        luxuryResort: "Luxury Spa Retreat",
+        sulfur: "Sulfur Spring",
+        carbonated: "Bicarbonate Spring",
+        chloride: "Chloride Marine Spring",
+        iron: "Rich Iron Spring",
+        viewMode: "Layer Mode",
+        normalLayer: "Sanctuary Pins",
+        heatmapLayer: "Thermal Field",
+        priceRange: "Budget Range",
+        priceUnit: "USD",
+        exportJson: "Export Atlas",
+        copied: "Copied to Clipboard",
+        newMarkerTitle: "Add New Sanctuary Pin",
+        editMarkerTitle: "Edit Sanctuary Journal",
+        nameLabel: "Sanctuary Name",
+        typeLabel: "Retreat Type",
+        visitedYearLabel: "Visited Year",
+        ratingLabel: "Rating (Score)",
+        mineralLabel: "Mineral Essence",
+        priceLabel: "Average Spend (USD)",
+        descLabel: "Sensory Journal Notes",
+        imgUrlLabel: "Image Link URL",
+        saveBtn: "Record Pin",
+        deleteBtn: "Remove",
+        editBtn: "Edit Journal",
+        cancelBtn: "Cancel",
+        visited: "Visited Year",
+        avgSpend: "Price Level",
+        ingredients: "Mineral Healing",
+        coordinates: "Coordinates",
+        latLabel: "Latitude",
+        lngLabel: "Longitude",
+        clickToAddTip: "Click anywhere on the map to add a new hot spring sanctuary.",
+        quickJump: "Featured Destinations:"
+      }
+    };
+
+    // 初始全球溫泉資料庫（支援純中 / 純英雙語分離，完全移除未標注的瑞士阿爾卑斯山）
+        // 初始全球溫泉資料庫（涵蓋台灣、日本、冰島、加州、紐西蘭，每種療癒型態皆有代表名湯）
+    const initialWorldOnsens = [
+      {
+        id: "onsen-1",
+        name: {
+          zh: "日本熊本・黑川秘湯山吹之宿",
+          en: "Yamabuki Ryokan, Kurokawa, Japan"
+        },
+        category: "historicRyokan",
+        lat: 33.0805,
+        lng: 131.1408,
+        visitedYear: 2023,
+        rating: 4.9,
+        price: 320,
+        mineral: "sulfur",
+        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "隱匿於筑後川溪谷綠蔭之間，杉木香與溫泉蒸氣冉冉昇華，宛如步入靜謐平安時代的忘憂禪居。",
+          en: "Nestled along the serene river valley in Kumamoto, with fragrant cedar woods and pure mineral steam."
+        }
+      },
+      {
+        id: "onsen-2",
+        name: {
+          zh: "日本群馬・草津溫泉望雲老舖",
+          en: "Boun Centennial Ryokan, Kusatsu, Japan"
+        },
+        category: "historicRyokan",
+        lat: 36.6206,
+        lng: 138.5960,
+        visitedYear: 2024,
+        rating: 4.8,
+        price: 290,
+        mineral: "sulfur",
+        image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "創業於江戶時代的百年名宿，引流日本第一酸性硫磺名湯，木造走廊散發古雅檜木芬芳。",
+          en: "Centuries-old Edo-period ryokan drawing directly from natural acidic sulfur spring sources."
+        }
+      },
+      {
+        id: "onsen-3",
+        name: {
+          zh: "台灣台東・栗松翡翠野溪溫泉",
+          en: "Lisong Wild Hot Springs, Taiwan"
+        },
+        category: "wildSpring",
+        lat: 23.1978,
+        lng: 121.0378,
+        visitedYear: 2024,
+        rating: 4.8,
+        price: 35,
+        mineral: "carbonated",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "徒步溯溪抵達的天然翡翠殿堂。崖壁結滿碧綠溫泉藻與白結晶，碳酸氫鈉泉水如絲綢柔撫全身肌膚。",
+          en: "An emerald river canyon sanctuary with vibrant mineral-tinted rock walls and silky thermal water."
+        }
+      },
+      {
+        id: "onsen-4",
+        name: {
+          zh: "美國加州・莫諾特拉弗廷野溪泉",
+          en: "Travertine Wild Springs, Bridgeport, California"
+        },
+        category: "wildSpring",
+        lat: 38.2566,
+        lng: -119.2045,
+        visitedYear: 2024,
+        rating: 4.7,
+        price: 25,
+        mineral: "carbonated",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "座落於內華達山脈東麓高原的天然石灰華露天溫泉，眺望廣闊山谷與落日熔金。",
+          en: "Untouched travertine pools overlooking the dramatic Sierra Nevada mountains and Eastern California plains."
+        }
+      },
+      {
+        id: "onsen-5",
+        name: {
+          zh: "冰島雷克雅維克・藍湖地熱水療",
+          en: "Blue Lagoon Retreat, Iceland"
+        },
+        category: "luxuryResort",
+        lat: 63.8804,
+        lng: -22.4495,
+        visitedYear: 2025,
+        rating: 4.9,
+        price: 210,
+        mineral: "chloride",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "黑熔岩原野中的乳藍色奇蹟。火山矽泥洗滌塵世浮躁，在極北冰原上感受地球深處的溫暖擁抱。",
+          en: "Milky cyan geothermal waters situated amidst lunar black lava fields, offering silica mud therapy."
+        }
+      },
+      {
+        id: "onsen-6",
+        name: {
+          zh: "美國加州・大瑟爾伊薩蘭靈修溫泉",
+          en: "Esalen Sanctuary Springs, Big Sur, USA"
+        },
+        category: "luxuryResort",
+        lat: 36.1264,
+        lng: -121.6375,
+        visitedYear: 2024,
+        rating: 5.0,
+        price: 490,
+        mineral: "chloride",
+        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "懸垂於太平洋海崖邊緣的傳奇心靈聖所。夜間浸潤於湧泉之中，凝聽滔天巨浪與浩瀚銀河對話。",
+          en: "Legendary coastal hot springs perched over dramatic ocean cliffs, ideal for starry night meditation."
+        }
+      },
+      {
+        id: "onsen-7",
+        name: {
+          zh: "紐西蘭羅托魯瓦・波利尼西亞泥漿湯坊",
+          en: "Polynesian Spa, Rotorua, New Zealand"
+        },
+        category: "localFeature",
+        lat: -38.1368,
+        lng: 176.2497,
+        visitedYear: 2023,
+        rating: 4.6,
+        price: 95,
+        mineral: "sulfur",
+        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "地熱湖畔古老毛利人朝聖名泉。富含酸性與鹼性雙重泉池，釋放體內沉積壓力，重回大地母體節奏。",
+          en: "Lakeside thermal baths celebrated since Maori antiquity, featuring natural therapeutic mud and mineral pools."
+        }
+      },
+      {
+        id: "onsen-8",
+        name: {
+          zh: "台灣台北・北投瀧乃湯百年錢湯",
+          en: "Longnice Centennial Baths, Beitou, Taiwan"
+        },
+        category: "localFeature",
+        lat: 25.1378,
+        lng: 121.5074,
+        visitedYear: 2023,
+        rating: 4.7,
+        price: 15,
+        mineral: "iron",
+        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+        description: {
+          zh: "全台灣現存最古老日式木造公共浴場，引流珍貴天然青磺泉，古樸溫暖的常民療癒記憶。",
+          en: "The oldest Japanese-era public bathhouse in Beitou, utilizing rare green sulfur thermal springs."
+        }
+      }
+    ];
+
+    // 焦點城市捷徑（嚴格對應目前已標注的 5 個地點，純中英單語切換）
+    const sanctuaries = [
+      { name: { zh: "台灣", en: "Taiwan" }, lat: 23.8, lng: 121.0, zoom: 8 },
+      { name: { zh: "日本", en: "Japan" }, lat: 35.6, lng: 138.5, zoom: 6 },
+      { name: { zh: "冰島", en: "Iceland" }, lat: 64.1, lng: -21.9, zoom: 7 },
+      { name: { zh: "美國加州", en: "California" }, lat: 36.5, lng: -121.8, zoom: 7 },
+      { name: { zh: "紐西蘭", en: "New Zealand" }, lat: -39.0, lng: 176.0, zoom: 7 },
+    ];
+
+    function MarketplaceMapsApp() {
+      const [lang, setLang] = useState('zh');
+      const t = translations[lang];
+
+      const [markers, setMarkers] = useState(initialWorldOnsens);
+      const [selectedMarker, setSelectedMarker] = useState(null);
+      const [isEditing, setIsEditing] = useState(false);
+      const [copySuccess, setCopySuccess] = useState(false);
+
+      const [formState, setFormState] = useState({
+        id: '',
+        nameZh: '',
+        nameEn: '',
+        category: 'localFeature',
+        visitedYear: 2024,
+        rating: 4.8,
+        price: 180,
+        mineral: 'sulfur',
+        image: '',
+        descZh: '',
+        descEn: '',
+        lat: 25.0,
+        lng: 121.5
+      });
+
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('ALL');
+      const [selectedMineral, setSelectedMineral] = useState('ALL');
+      const [priceMax, setPriceMax] = useState(600);
+      const [layerMode, setLayerMode] = useState('normal');
+
+      const mapRef = useRef(null);
+      const mapInstanceRef = useRef(null);
+      const markersLayerGroupRef = useRef(null);
+      const heatCirclesLayerGroupRef = useRef(null);
+
+      const categoryConfig = {
+        wildSpring: {
+          label: t.wildSpring,
+          badgeColor: "bg-wellness-moss text-white",
+          accentColor: "#3B4D3C",
+        },
+        localFeature: {
+          label: t.localFeature,
+          badgeColor: "bg-wellness-earth text-white",
+          accentColor: "#8C684E",
+        },
+        historicRyokan: {
+          label: t.historicRyokan,
+          badgeColor: "bg-wellness-terracotta text-white",
+          accentColor: "#BA6B50",
+        },
+        luxuryResort: {
+          label: t.luxuryResort,
+          badgeColor: "bg-wellness-forest text-wellness-sand",
+          accentColor: "#263427",
+        }
+      };
+
+      // 取得特定語言下的名稱與說明
+      const getName = (m) => (typeof m.name === 'object' ? (m.name[lang] || m.name.zh || m.name.en) : m.name);
+      const getDesc = (m) => (typeof m.description === 'object' ? (m.description[lang] || m.description.zh || m.description.en) : m.description);
+
+      // 增強型模糊與分詞搜尋邏輯
+      const filteredMarkers = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        return markers.filter((m) => {
+          let matchSearch = true;
+          if (query) {
+            const nameStr = getName(m).toLowerCase();
+            const descStr = getDesc(m).toLowerCase();
+            const catLabel = (categoryConfig[m.category]?.label || '').toLowerCase();
+            const mineralLabel = (t[m.mineral] || '').toLowerCase();
+            const searchableText = `${nameStr} ${descStr} ${catLabel} ${mineralLabel} ${m.mineral}`.toLowerCase();
+
+            const terms = query.split(/\s+/);
+            const allTermsMatch = terms.every((term) => searchableText.includes(term));
+            const strippedQuery = query.replace(/(溫泉|温泉|名湯|湯宿|泉|spring|springs|spa|resort)/gi, '').trim();
+            const strippedMatch = strippedQuery.length > 0 && searchableText.includes(strippedQuery);
+
+            matchSearch = allTermsMatch || strippedMatch || searchableText.includes(query);
+          }
+
+          const matchCat = selectedCategory === 'ALL' || m.category === selectedCategory;
+          const matchMineral = selectedMineral === 'ALL' || m.mineral === selectedMineral;
+          const matchPrice = m.price <= priceMax;
+          return matchSearch && matchCat && matchMineral && matchPrice;
+        });
+      }, [markers, searchQuery, selectedCategory, selectedMineral, priceMax, lang]);
+
+      // 當使用者點擊切換「療癒型態」或篩選條件變更時，自動計算邊界 (fitBounds)，將該型態內所有溫泉地點完整囊括呈現！
+      useEffect(() => {
+        if (!mapInstanceRef.current || filteredMarkers.length === 0) return;
+
+        // 如果該分類下有超過一個地點，自動調整縮放與中心以全數一目瞭然
+        if (filteredMarkers.length > 1) {
+          const bounds = L.latLngBounds(filteredMarkers.map((m) => [m.lat, m.lng]));
+          mapInstanceRef.current.fitBounds(bounds, {
+            padding: [60, 60],
+            maxZoom: 9,
+            animate: true,
+            duration: 1.5
+          });
+          // 關閉詳情視窗以確保所有標注無死角可見
+          setSelectedMarker(null);
+        } else if (filteredMarkers.length === 1) {
+          // 若僅有單一地點，直接飛往該處特寫
+          flyToLocation(filteredMarkers[0].lat, filteredMarkers[0].lng, 11);
+          setSelectedMarker(filteredMarkers[0]);
+        }
+      }, [selectedCategory, selectedMineral]);
+
+      // 當輸入搜尋且產生匹配時，地圖直接平移飛往目標上方
+      useEffect(() => {
+        const query = searchQuery.trim();
+        if (!query || !mapInstanceRef.current) return;
+
+        if (filteredMarkers.length > 0) {
+          const firstMatch = filteredMarkers[0];
+          flyToLocation(firstMatch.lat, firstMatch.lng, 12);
+          setSelectedMarker(firstMatch);
+          setIsEditing(false);
+        }
+      }, [searchQuery]);
+
+      const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (filteredMarkers.length > 0) {
+            const target = filteredMarkers[0];
+            setSelectedMarker(target);
+            flyToLocation(target.lat, target.lng, 12);
+          }
+        }
+      };
+
+      // 初始化開源 OSM 地圖 (100% 免 API Key)
+      useEffect(() => {
+        if (!mapInstanceRef.current && mapRef.current) {
+          const map = L.map(mapRef.current, {
+            center: [28.0, 125.0],
+            zoom: 4,
+            minZoom: 2,
+            maxZoom: 18,
+            zoomControl: false,
+          });
+
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+          }).addTo(map);
+
+          L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+          markersLayerGroupRef.current = L.layerGroup().addTo(map);
+          heatCirclesLayerGroupRef.current = L.layerGroup().addTo(map);
+
+          map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+            setFormState({
+              id: `onsen-${Date.now()}`,
+              nameZh: '',
+              nameEn: '',
+              category: 'localFeature',
+              visitedYear: 2024,
+              rating: 4.8,
+              price: 180,
+              mineral: 'sulfur',
+              image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+              descZh: '',
+              descEn: '',
+              lat: Number(lat.toFixed(4)),
+              lng: Number(lng.toFixed(4))
+            });
+            setSelectedMarker(null);
+            setIsEditing(true);
+          });
+
+          mapInstanceRef.current = map;
+        }
+
+        return () => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+          }
+        };
+      }, []);
+
+      // 渲染標記與地熱能量圈
+      useEffect(() => {
+        if (!mapInstanceRef.current || !markersLayerGroupRef.current || !heatCirclesLayerGroupRef.current) return;
+
+        markersLayerGroupRef.current.clearLayers();
+        heatCirclesLayerGroupRef.current.clearLayers();
+
+        if (layerMode === 'heatmap') {
+          filteredMarkers.forEach((m) => {
+            const circleRadius = (m.price * 750) + 60000;
+            const circle = L.circle([m.lat, m.lng], {
+              radius: circleRadius,
+              fillColor: m.price > 250 ? '#BA6B50' : '#8C684E',
+              fillOpacity: 0.38,
+              stroke: true,
+              color: '#3B4D3C',
+              weight: 1,
+            });
+            circle.bindTooltip(`<b>${getName(m)}</b><br/>${t.avgSpend}: $${m.price} ${t.priceUnit}`, { sticky: true });
+            heatCirclesLayerGroupRef.current.addLayer(circle);
+          });
+        } else {
+          filteredMarkers.forEach((m) => {
+            const config = categoryConfig[m.category] || categoryConfig.localFeature;
+
+            const customHtml = `
+              <div class="group relative cursor-pointer flex flex-col items-center">
+                <div class="w-9 h-9 rounded-full ${config.badgeColor} border-[2px] border-wellness-cream shadow-md flex items-center justify-center transform transition duration-300 group-hover:scale-125 group-hover:-translate-y-1">
+                  <span class="text-xs font-serif italic tracking-tighter">♨</span>
+                  <div class="absolute -top-1.5 -right-1 bg-wellness-cream text-wellness-forest text-[10px] font-serif font-bold px-1.5 py-0.2 rounded-full border border-wellness-sandstone shadow-sm">
+                    ${m.rating}
+                  </div>
+                </div>
+                <div class="w-2 h-1 bg-wellness-forest/30 rounded-full blur-[1.5px] mt-1"></div>
+              </div>
+            `;
+
+            const customIcon = L.divIcon({
+              className: 'custom-wellness-marker',
+              html: customHtml,
+              iconSize: [36, 42],
+              iconAnchor: [18, 38],
+              popupAnchor: [0, -36]
+            });
+
+            const marker = L.marker([m.lat, m.lng], { icon: customIcon });
+
+            const tooltipContent = `
+              <div class="w-60 p-3 bg-wellness-cream text-wellness-charcoal">
+                <img src="${m.image}" class="w-full h-28 object-cover rounded-xl mb-2.5 shadow-sm" />
+                <div class="font-serif text-sm font-semibold tracking-wide text-wellness-forest">${getName(m)}</div>
+                <div class="text-[11px] text-wellness-earth flex justify-between items-center mt-1.5 pt-1.5 border-t border-wellness-sandstone/60">
+                  <span class="font-medium">${config.label}</span>
+                  <span class="font-serif">${m.visitedYear} ${lang === 'zh' ? '年' : ''}</span>
+                </div>
+              </div>
+            `;
+            marker.bindTooltip(tooltipContent, {
+              direction: 'top',
+              opacity: 0.98,
+              offset: [0, -28]
+            });
+
+            marker.on('click', () => {
+              setSelectedMarker(m);
+              setIsEditing(false);
+            });
+
+            markersLayerGroupRef.current.addLayer(marker);
+          });
+        }
+      }, [filteredMarkers, layerMode, lang]);
+
+      // 切換為全球宏觀視角 (看得到全世界所有地點標注)
+      const switchToGlobalView = (mode) => {
+        setLayerMode(mode);
+        setSelectedMarker(null);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([25.0, 15.0], 2, {
+            duration: 1.6
+          });
+        }
+      };
+
+      const flyToLocation = (lat, lng, zoomLevel) => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([lat, lng], zoomLevel, { duration: 1.8 });
+        }
+      };
+
+      const handleSaveMarker = (e) => {
+        e.preventDefault();
+        const finalNameZh = formState.nameZh.trim() || formState.nameEn.trim();
+        const finalNameEn = formState.nameEn.trim() || formState.nameZh.trim();
+        if (!finalNameZh && !finalNameEn) return;
+
+        const newMarkerData = {
+          id: formState.id,
+          name: { zh: finalNameZh, en: finalNameEn },
+          category: formState.category,
+          lat: Number(formState.lat),
+          lng: Number(formState.lng),
+          visitedYear: Number(formState.visitedYear),
+          rating: Number(formState.rating),
+          price: Number(formState.price),
+          mineral: formState.mineral,
+          image: formState.image || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+          description: {
+            zh: formState.descZh.trim() || formState.descEn.trim(),
+            en: formState.descEn.trim() || formState.descZh.trim()
+          }
+        };
+
+        setMarkers((prev) => {
+          const exists = prev.some((m) => m.id === newMarkerData.id);
+          if (exists) {
+            return prev.map((m) => (m.id === newMarkerData.id ? newMarkerData : m));
+          }
+          return [...prev, newMarkerData];
+        });
+
+        setIsEditing(false);
+        setSelectedMarker(newMarkerData);
+        flyToLocation(newMarkerData.lat, newMarkerData.lng, 10);
+      };
+
+      const handleDeleteMarker = (id) => {
+        setMarkers((prev) => prev.filter((m) => m.id !== id));
+        setSelectedMarker(null);
+        setIsEditing(false);
+      };
+
+      const handleExportJson = () => {
+        const dataStr = JSON.stringify(markers, null, 2);
+        navigator.clipboard.writeText(dataStr);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2500);
+      };
+
+      return (
+        <div className="w-full h-screen flex flex-col bg-wellness-cream text-wellness-charcoal font-sans overflow-hidden">
+          {/* 1. 頂部導航列 (純單語呈現) */}
+          <header className="h-20 border-b border-wellness-sandstone bg-wellness-cream/90 backdrop-blur-md px-8 flex items-center justify-between relative z-[2000]">
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-full bg-wellness-forest text-wellness-sand flex items-center justify-center shadow-sm border border-wellness-moss/30">
+                <Icons.Leaf className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-serif text-xl md:text-2xl font-bold tracking-wider text-wellness-forest uppercase">
+                    {t.brand}
+                  </h1>
+                  <span className="text-[10px] tracking-widest px-2.5 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone font-medium">
+                    {t.badge}
+                  </span>
+                </div>
+                <p className="text-xs text-wellness-earth tracking-wide mt-0.5 font-light">
+                  {t.subtagline}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* 搜尋欄位 */}
+              <div className="relative w-64 md:w-72">
+                <Icons.Search className="w-4 h-4 text-wellness-earth/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full pl-9 pr-8 py-2 text-xs bg-wellness-sand/60 border border-wellness-sandstone rounded-full focus:outline-none focus:ring-1 focus:ring-wellness-terracotta focus:bg-white transition placeholder-wellness-charcoal/40"
+                />
+                {searchQuery.trim() && (
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-wellness-cream border border-wellness-sandstone rounded-2xl shadow-2xl overflow-hidden z-[3000] max-h-80 overflow-y-auto min-w-[300px]">
+                    {filteredMarkers.length > 0 ? (
+                      filteredMarkers.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            setSelectedMarker(item);
+                            flyToLocation(item.lat, item.lng, 12);
+                          }}
+                          className="px-3.5 py-2.5 hover:bg-wellness-sand/80 cursor-pointer border-b border-wellness-sandstone/40 last:border-0 flex items-center justify-between transition"
+                        >
+                          <div className="truncate pr-2">
+                            <div className="font-serif text-xs font-semibold text-wellness-forest truncate">{getName(item)}</div>
+                            <div className="text-[10px] text-wellness-earth truncate">{categoryConfig[item.category]?.label} · {item.visitedYear}{lang === 'zh' ? '年' : ''}</div>
+                          </div>
+                          <span className="text-[10px] font-serif text-wellness-terracotta font-semibold shrink-0">${item.price}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-[11px] text-wellness-earth/70 text-center font-serif italic">
+                        {lang === 'zh' ? '無相符的溫泉聖所' : 'No matching sanctuaries found'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-wellness-earth hover:text-wellness-charcoal"
+                  >
+                    <Icons.X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* 視圖切換 (點擊任一模式皆自動切回全球 Global View) */}
+              <div className="flex items-center bg-wellness-sand p-1 rounded-full border border-wellness-sandstone">
+                <button
+                  onClick={() => switchToGlobalView('normal')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs rounded-full font-medium transition ${
+                    layerMode === 'normal'
+                      ? 'bg-wellness-forest text-wellness-cream shadow-sm'
+                      : 'text-wellness-charcoal/70 hover:text-wellness-charcoal'
+                  }`}
+                >
+                  <Icons.Compass className="w-3.5 h-3.5" />
+                  {t.normalLayer}
+                </button>
+                <button
+                  onClick={() => switchToGlobalView('heatmap')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs rounded-full font-medium transition ${
+                    layerMode === 'heatmap'
+                      ? 'bg-wellness-terracotta text-white shadow-sm'
+                      : 'text-wellness-charcoal/70 hover:text-wellness-charcoal'
+                  }`}
+                >
+                  <Icons.Activity className="w-3.5 h-3.5" />
+                  {t.heatmapLayer}
+                </button>
+              </div>
+
+              {/* 導出收藏 */}
+              <button
+                onClick={handleExportJson}
+                className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 bg-white hover:bg-wellness-sand text-wellness-forest rounded-full border border-wellness-sandstone shadow-sm transition"
+              >
+                {copySuccess ? <Icons.Check className="w-3.5 h-3.5 text-wellness-moss" /> : <Icons.Download className="w-3.5 h-3.5" />}
+                {copySuccess ? t.copied : t.exportJson}
+              </button>
+
+              {/* 語言切換按鈕 */}
+              <button
+                onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+                className="flex items-center gap-1 text-xs font-semibold px-3.5 py-2 rounded-full border border-wellness-sandstone bg-white text-wellness-forest hover:bg-wellness-sand transition"
+              >
+                <Icons.Globe className="w-3.5 h-3.5" />
+                {lang === 'zh' ? 'English' : '繁體中文'}
+              </button>
+            </div>
+          </header>
+
+          {/* 2. 焦點目的地捷徑列 (移除瑞士，純單語) */}
+          <div className="bg-wellness-sand/40 border-b border-wellness-sandstone px-8 py-2.5 flex items-center gap-2.5 overflow-x-auto text-xs z-10">
+            <span className="text-wellness-forest font-serif italic text-sm tracking-wide flex items-center gap-1.5 shrink-0 pr-2">
+              <Icons.Sparkles className="w-3.5 h-3.5 text-wellness-terracotta" />
+              {t.quickJump}
+            </span>
+            {sanctuaries.map((d) => (
+              <button
+                key={d.name[lang]}
+                onClick={() => flyToLocation(d.lat, d.lng, d.zoom)}
+                className="px-3.5 py-1 bg-white/80 hover:bg-wellness-moss hover:text-white border border-wellness-sandstone/80 rounded-full shrink-0 transition text-wellness-charcoal/80 font-normal shadow-2xs"
+              >
+                {d.name[lang]}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 flex overflow-hidden relative">
+            {/* 3. 左側古典沙龍抽屜 */}
+            <aside className="w-84 border-r border-wellness-sandstone bg-wellness-cream/95 flex flex-col z-10 shadow-sm">
+              <div className="p-5 border-b border-wellness-sandstone/60 flex items-center justify-between">
+                <span className="font-serif text-sm tracking-wider uppercase text-wellness-forest flex items-center gap-2">
+                  <Icons.Sliders className="w-4 h-4 text-wellness-earth" />
+                  {lang === 'zh' ? '身心靈指標篩選' : 'Criteria & Filters'}
+                </span>
+                <span className="text-xs font-serif italic px-2.5 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone">
+                  {filteredMarkers.length} / {markers.length} {lang === 'zh' ? '處' : 'places'}
+                </span>
+              </div>
+
+              <div className="p-5 space-y-6 overflow-y-auto flex-1">
+                {/* 湯型分類 */}
+                <div>
+                  <label className="font-serif text-sm text-wellness-forest font-semibold block mb-2.5">
+                    {t.typeLabel}
+                  </label>
+                  <div className="space-y-1.5">
+                    {['ALL', 'wildSpring', 'localFeature', 'historicRyokan', 'luxuryResort'].map((key) => {
+                      const isActive = selectedCategory === key;
+                      const label = key === 'ALL' ? t.allTypes : categoryConfig[key]?.label;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setSelectedCategory(key)}
+                          className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition flex items-center justify-between ${
+                            isActive
+                              ? 'bg-wellness-forest text-wellness-cream shadow-sm font-medium'
+                              : 'bg-wellness-sand/50 hover:bg-wellness-sand text-wellness-charcoal/80'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2 truncate">
+                            {key !== 'ALL' && (
+                              <span
+                                className="w-2 h-2 rounded-full shrink-0"
+                                style={{ backgroundColor: categoryConfig[key]?.accentColor }}
+                              />
+                            )}
+                            {label}
+                          </span>
+                          <span className="text-[11px] font-serif opacity-70">
+                            {key === 'ALL'
+                              ? markers.length
+                              : markers.filter((m) => m.category === key).length}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 泉質與芳療成分 */}
+                <div>
+                  <label className="font-serif text-sm text-wellness-forest font-semibold block mb-2">
+                    <Icons.Droplets className="w-3.5 h-3.5 inline mr-1 text-wellness-moss" />
+                    {t.mineralLabel}
+                  </label>
+                  <select
+                    value={selectedMineral}
+                    onChange={(e) => setSelectedMineral(e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl bg-wellness-sand/60 border border-wellness-sandstone text-wellness-charcoal focus:outline-none focus:ring-1 focus:ring-wellness-moss"
+                  >
+                    <option value="ALL">{t.allMinerals}</option>
+                    <option value="sulfur">{t.sulfur}</option>
+                    <option value="carbonated">{t.carbonated}</option>
+                    <option value="chloride">{t.chloride}</option>
+                    <option value="iron">{t.iron}</option>
+                  </select>
+                </div>
+
+                {/* 客單價體驗預算 */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="font-serif text-sm text-wellness-forest font-semibold">
+                      {t.priceRange}
+                    </label>
+                    <span className="text-xs font-serif font-bold text-wellness-terracotta">
+                      ≤ ${priceMax} {t.priceUnit}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="30"
+                    max="600"
+                    step="20"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(Number(e.target.value))}
+                    className="w-full accent-wellness-moss h-1.5 bg-wellness-sandstone rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] font-serif text-wellness-earth mt-1.5">
+                    <span>$30</span>
+                    <span>$300</span>
+                    <span>$600+</span>
+                  </div>
+                </div>
+
+                {/* 提示指引 */}
+                <div className="p-4 bg-wellness-sand/70 border border-wellness-sandstone rounded-2xl text-xs text-wellness-charcoal/80 flex items-start gap-3">
+                  <Icons.Leaf className="w-4 h-4 shrink-0 text-wellness-moss mt-0.5" />
+                  <p className="font-light leading-relaxed">{t.clickToAddTip}</p>
+                </div>
+              </div>
+            </aside>
+
+            {/* 4. 地圖容器主畫布 (OpenStreetMap) */}
+            <main className="flex-1 h-full relative overflow-hidden">
+              <div ref={mapRef} className="w-full h-full" />
+
+              {/* 5. 點擊彈出的名湯詳情卡 */}
+              {selectedMarker && !isEditing && (
+                <div className="absolute right-8 top-8 bottom-8 w-[400px] bg-wellness-cream/95 backdrop-blur-md border border-wellness-sandstone rounded-3xl shadow-2xl p-7 flex flex-col z-[1000] overflow-y-auto">
+                  <div className="flex justify-between items-start mb-4">
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-serif tracking-wider ${
+                        categoryConfig[selectedMarker.category]?.badgeColor
+                      }`}
+                    >
+                      {categoryConfig[selectedMarker.category]?.label}
+                    </span>
+                    <button
+                      onClick={() => setSelectedMarker(null)}
+                      className="p-1.5 rounded-full hover:bg-wellness-sand text-wellness-earth hover:text-wellness-charcoal transition"
+                    >
+                      <Icons.X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="relative rounded-2xl overflow-hidden mb-5 shadow-sm">
+                    <img
+                      src={selectedMarker.image}
+                      alt={getName(selectedMarker)}
+                      className="w-full h-48 object-cover transform hover:scale-105 transition duration-700"
+                    />
+                    <div className="absolute top-3 right-3 bg-wellness-cream/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-serif font-bold text-wellness-forest shadow-sm">
+                      ★ {selectedMarker.rating}
+                    </div>
+                  </div>
+
+                  <h3 className="font-serif text-xl font-bold text-wellness-forest leading-snug mb-3">
+                    {getName(selectedMarker)}
+                  </h3>
+
+                  <p className="text-xs text-wellness-charcoal/70 leading-relaxed font-light mb-6 border-l-2 border-wellness-sandstone pl-3 italic">
+                    "{getDesc(selectedMarker)}"
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 mb-6 font-sans">
+                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone">
+                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.visited}</span>
+                      <span className="text-sm font-serif font-semibold text-wellness-forest">{selectedMarker.visitedYear} {lang === 'zh' ? '年' : ''}</span>
+                    </div>
+                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone">
+                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.avgSpend}</span>
+                      <span className="text-sm font-serif font-semibold text-wellness-terracotta">${selectedMarker.price} {t.priceUnit}</span>
+                    </div>
+                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone col-span-2">
+                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.ingredients}</span>
+                      <span className="text-xs font-medium text-wellness-moss">
+                        {t[selectedMarker.mineral] || selectedMarker.mineral}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone col-span-2">
+                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.coordinates}</span>
+                      <span className="text-xs font-mono text-wellness-charcoal/60">
+                        {selectedMarker.lat}° N, {selectedMarker.lng}° E
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-4 border-t border-wellness-sandstone flex gap-2">
+                    <button
+                      onClick={() => {
+                        setFormState({
+                          id: selectedMarker.id,
+                          nameZh: typeof selectedMarker.name === 'object' ? (selectedMarker.name.zh || '') : selectedMarker.name,
+                          nameEn: typeof selectedMarker.name === 'object' ? (selectedMarker.name.en || '') : '',
+                          category: selectedMarker.category,
+                          visitedYear: selectedMarker.visitedYear,
+                          rating: selectedMarker.rating,
+                          price: selectedMarker.price,
+                          mineral: selectedMarker.mineral,
+                          image: selectedMarker.image,
+                          descZh: typeof selectedMarker.description === 'object' ? (selectedMarker.description.zh || '') : selectedMarker.description,
+                          descEn: typeof selectedMarker.description === 'object' ? (selectedMarker.description.en || '') : '',
+                          lat: selectedMarker.lat,
+                          lng: selectedMarker.lng
+                        });
+                        setIsEditing(true);
+                      }}
+                      className="flex-1 py-2.5 rounded-full text-xs font-medium bg-wellness-sand hover:bg-wellness-sandstone text-wellness-forest flex items-center justify-center gap-1.5 transition"
+                    >
+                      <Icons.Edit className="w-3.5 h-3.5" />
+                      {t.editBtn}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMarker(selectedMarker.id)}
+                      className="px-5 py-2.5 rounded-full text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center gap-1.5 transition"
+                    >
+                      <Icons.Trash className="w-3.5 h-3.5" />
+                      {t.deleteBtn}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. 編輯 / 新增 表單 */}
+              {isEditing && (
+                <div className="absolute right-8 top-8 bottom-8 w-[400px] bg-wellness-cream border border-wellness-sandstone rounded-3xl shadow-2xl p-7 flex flex-col z-[1000] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-5 pb-3 border-b border-wellness-sandstone">
+                    <h3 className="font-serif text-lg font-bold text-wellness-forest">
+                      {formState.id.startsWith('onsen-') && (formState.nameZh || formState.nameEn) ? t.editMarkerTitle : t.newMarkerTitle}
+                    </h3>
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="p-1 rounded-full hover:bg-wellness-sand text-wellness-earth"
+                    >
+                      <Icons.X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveMarker} className="space-y-4 text-xs flex-1 flex flex-col font-sans">
+                    <div>
+                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">
+                        {lang === 'zh' ? '溫泉名稱 (中文)' : 'Name (English)'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={lang === 'zh' ? formState.nameZh : formState.nameEn}
+                        onChange={(e) => {
+                          if (lang === 'zh') setFormState({ ...formState, nameZh: e.target.value });
+                          else setFormState({ ...formState, nameEn: e.target.value });
+                        }}
+                        placeholder={lang === 'zh' ? '例：黑川秘湯・山吹之宿' : 'e.g. Yamabuki Kurokawa'}
+                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone text-wellness-charcoal focus:outline-none focus:ring-1 focus:ring-wellness-moss"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.typeLabel}</label>
+                        <select
+                          value={formState.category}
+                          onChange={(e) => setFormState({ ...formState, category: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                        >
+                          <option value="wildSpring">{t.wildSpring}</option>
+                          <option value="localFeature">{t.localFeature}</option>
+                          <option value="historicRyokan">{t.historicRyokan}</option>
+                          <option value="luxuryResort">{t.luxuryResort}</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.mineralLabel}</label>
+                        <select
+                          value={formState.mineral}
+                          onChange={(e) => setFormState({ ...formState, mineral: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                        >
+                          <option value="sulfur">{t.sulfur}</option>
+                          <option value="carbonated">{t.carbonated}</option>
+                          <option value="chloride">{t.chloride}</option>
+                          <option value="iron">{t.iron}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.visitedYearLabel}</label>
+                        <input
+                          type="number"
+                          value={formState.visitedYear}
+                          onChange={(e) => setFormState({ ...formState, visitedYear: Number(e.target.value) })}
+                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.ratingLabel}</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="1"
+                          max="5"
+                          value={formState.rating}
+                          onChange={(e) => setFormState({ ...formState, rating: Number(e.target.value) })}
+                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.priceLabel}</label>
+                        <input
+                          type="number"
+                          value={formState.price}
+                          onChange={(e) => setFormState({ ...formState, price: Number(e.target.value) })}
+                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 bg-wellness-sand/40 p-2.5 rounded-2xl border border-wellness-sandstone">
+                      <div>
+                        <label className="block text-[10px] text-wellness-earth font-mono">{t.latLabel} (°N)</label>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          value={formState.lat}
+                          onChange={(e) => setFormState({ ...formState, lat: Number(e.target.value) })}
+                          className="w-full p-1.5 bg-white border border-wellness-sandstone rounded-lg text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-wellness-earth font-mono">{t.lngLabel} (°E)</label>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          value={formState.lng}
+                          onChange={(e) => setFormState({ ...formState, lng: Number(e.target.value) })}
+                          className="w-full p-1.5 bg-white border border-wellness-sandstone rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.imgUrlLabel}</label>
+                      <input
+                        type="url"
+                        value={formState.image}
+                        onChange={(e) => setFormState({ ...formState, image: e.target.value })}
+                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">
+                        {lang === 'zh' ? '靜修感受筆記 (中文)' : 'Journal Notes (English)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={lang === 'zh' ? formState.descZh : formState.descEn}
+                        onChange={(e) => {
+                          if (lang === 'zh') setFormState({ ...formState, descZh: e.target.value });
+                          else setFormState({ ...formState, descEn: e.target.value });
+                        }}
+                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone h-20 resize-none font-light"
+                      />
+                    </div>
+
+                    <div className="pt-3 border-t border-wellness-sandstone flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 py-2.5 rounded-full text-xs font-medium bg-wellness-sand hover:bg-wellness-sandstone text-wellness-forest transition"
+                      >
+                        {t.cancelBtn}
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 py-2.5 rounded-full text-xs font-serif tracking-wider font-semibold bg-wellness-forest hover:bg-wellness-moss text-wellness-cream shadow-md transition"
+                      >
+                        {t.saveBtn}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<MarketplaceMapsApp />, document.getElementById('root'));
+  </script>
+</body>
+</html>
