@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 關鍵 1：開放使用者雙指縮放，解除鎖死限制 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
   <title>AURA ON-SEN | 世界溫泉巡禮・身心靈療癒地圖</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -46,11 +47,25 @@
     }
   </script>
   <style>
-    body {
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      user-select: none;
       background-color: #FAF8F5;
       color: #232523;
+    }
+    /* 取代固定 100vh，採用更適合行動裝置瀏覽器工具列動態高度的 dvh */
+    #root {
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
     }
     .leaflet-container {
       width: 100%;
@@ -74,8 +89,8 @@
       line-height: inherit;
     }
     ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
     }
     ::-webkit-scrollbar-track {
       background: #FAF8F5;
@@ -84,12 +99,9 @@
       background: #D8D0C5;
       border-radius: 9999px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #BA6B50;
-    }
   </style>
 </head>
-<body class="bg-wellness-cream text-wellness-charcoal overflow-hidden antialiased">
+<body class="bg-wellness-cream text-wellness-charcoal antialiased overflow-x-hidden">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -104,12 +116,6 @@
       ),
       Search: (props) => (
         <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      ),
-      Plus: (props) => (
-        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-      ),
-      X: (props) => (
-        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       ),
       Sliders: (props) => (
         <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
@@ -132,6 +138,9 @@
       Trash: (props) => (
         <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       ),
+      X: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      ),
       Check: (props) => (
         <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       ),
@@ -145,7 +154,7 @@
         brand: "靈泉行旅",
         badge: "身心靈療癒巡禮",
         subtagline: "探索全球大地滋養之水・心靈療癒與隱世名湯地圖",
-        searchPlaceholder: "尋訪秘境名湯、泉質成分或所在地點...",
+        searchPlaceholder: "尋訪秘境名湯、泉質或地點...",
         allTypes: "所有名湯型態",
         allMinerals: "全系列泉質成分",
         wildSpring: "自然野溪・原生態秘湯",
@@ -160,7 +169,7 @@
         normalLayer: "經典地標",
         heatmapLayer: "地熱能量場",
         priceRange: "體驗預算",
-        priceUnit: "美元",
+        priceUnit: "新台幣",
         exportJson: "導出收藏",
         copied: "已複製至剪貼簿",
         newMarkerTitle: "銘刻新的溫泉記憶",
@@ -170,7 +179,7 @@
         visitedYearLabel: "造訪年份",
         ratingLabel: "心靈契合度 (評分)",
         mineralLabel: "核心泉質",
-        priceLabel: "平均客單價 (美元)",
+        priceLabel: "平均客單價 (新台幣)",
         descLabel: "靜修感受與隨筆筆記",
         imgUrlLabel: "影像連結 (網址)",
         saveBtn: "珍藏標注",
@@ -183,14 +192,14 @@
         coordinates: "地理坐標",
         latLabel: "緯度",
         lngLabel: "經度",
-        clickToAddTip: "在世界地圖任意空白處點擊，即可留下您專屬的溫泉印記。",
-        quickJump: "焦點名湯目的地："
+        clickToAddTip: "在世界地圖任意空白處點擊，即可留下專屬溫泉印記。",
+        quickJump: "名湯直達："
       },
       en: {
         brand: "AURA ON-SEN",
         badge: "Holistic Retreat",
         subtagline: "A Curated Atlas of Global Healing Waters & Sanctuary Springs",
-        searchPlaceholder: "Search sanctuaries, mineral waters, or regions...",
+        searchPlaceholder: "Search sanctuaries, mineral waters...",
         allTypes: "All Sanctuaries",
         allMinerals: "All Mineral Compositions",
         wildSpring: "Wild River Spring",
@@ -205,7 +214,7 @@
         normalLayer: "Sanctuary Pins",
         heatmapLayer: "Thermal Field",
         priceRange: "Budget Range",
-        priceUnit: "USD",
+        priceUnit: "TWD",
         exportJson: "Export Atlas",
         copied: "Copied to Clipboard",
         newMarkerTitle: "Add New Sanctuary Pin",
@@ -215,7 +224,7 @@
         visitedYearLabel: "Visited Year",
         ratingLabel: "Rating (Score)",
         mineralLabel: "Mineral Essence",
-        priceLabel: "Average Spend (USD)",
+        priceLabel: "Average Spend (TWD)",
         descLabel: "Sensory Journal Notes",
         imgUrlLabel: "Image Link URL",
         saveBtn: "Record Pin",
@@ -229,25 +238,20 @@
         latLabel: "Latitude",
         lngLabel: "Longitude",
         clickToAddTip: "Click anywhere on the map to add a new hot spring sanctuary.",
-        quickJump: "Featured Destinations:"
+        quickJump: "Destinations:"
       }
     };
 
-    // 初始全球溫泉資料庫（支援純中 / 純英雙語分離，完全移除未標注的瑞士阿爾卑斯山）
-        // 初始全球溫泉資料庫（涵蓋台灣、日本、冰島、加州、紐西蘭，每種療癒型態皆有代表名湯）
     const initialWorldOnsens = [
       {
         id: "onsen-1",
-        name: {
-          zh: "日本熊本・黑川秘湯山吹之宿",
-          en: "Yamabuki Ryokan, Kurokawa, Japan"
-        },
+        name: { zh: "日本熊本・黑川秘湯山吹之宿", en: "Yamabuki Ryokan, Kurokawa, Japan" },
         category: "historicRyokan",
         lat: 33.0805,
         lng: 131.1408,
         visitedYear: 2023,
         rating: 4.9,
-        price: 320,
+        price: 9800,
         mineral: "sulfur",
         image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -257,16 +261,13 @@
       },
       {
         id: "onsen-2",
-        name: {
-          zh: "日本群馬・草津溫泉望雲老舖",
-          en: "Boun Centennial Ryokan, Kusatsu, Japan"
-        },
+        name: { zh: "日本群馬・草津溫泉望雲老舖", en: "Boun Centennial Ryokan, Kusatsu, Japan" },
         category: "historicRyokan",
         lat: 36.6206,
         lng: 138.5960,
         visitedYear: 2024,
         rating: 4.8,
-        price: 290,
+        price: 8800,
         mineral: "sulfur",
         image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -276,16 +277,13 @@
       },
       {
         id: "onsen-3",
-        name: {
-          zh: "台灣台東・栗松翡翠野溪溫泉",
-          en: "Lisong Wild Hot Springs, Taiwan"
-        },
+        name: { zh: "台灣台東・栗松翡翠野溪溫泉", en: "Lisong Wild Hot Springs, Taiwan" },
         category: "wildSpring",
         lat: 23.1978,
         lng: 121.0378,
         visitedYear: 2024,
         rating: 4.8,
-        price: 35,
+        price: 1200,
         mineral: "carbonated",
         image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -295,16 +293,13 @@
       },
       {
         id: "onsen-4",
-        name: {
-          zh: "美國加州・莫諾特拉弗廷野溪泉",
-          en: "Travertine Wild Springs, Bridgeport, California"
-        },
+        name: { zh: "美國加州・莫諾特拉弗廷野溪泉", en: "Travertine Wild Springs, Bridgeport, California" },
         category: "wildSpring",
         lat: 38.2566,
         lng: -119.2045,
         visitedYear: 2024,
         rating: 4.7,
-        price: 25,
+        price: 900,
         mineral: "carbonated",
         image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -314,16 +309,13 @@
       },
       {
         id: "onsen-5",
-        name: {
-          zh: "冰島雷克雅維克・藍湖地熱水療",
-          en: "Blue Lagoon Retreat, Iceland"
-        },
+        name: { zh: "冰島雷克雅維克・藍湖地熱水療", en: "Blue Lagoon Retreat, Iceland" },
         category: "luxuryResort",
         lat: 63.8804,
         lng: -22.4495,
         visitedYear: 2025,
         rating: 4.9,
-        price: 210,
+        price: 6500,
         mineral: "chloride",
         image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -333,16 +325,13 @@
       },
       {
         id: "onsen-6",
-        name: {
-          zh: "美國加州・大瑟爾伊薩蘭靈修溫泉",
-          en: "Esalen Sanctuary Springs, Big Sur, USA"
-        },
+        name: { zh: "美國加州・大瑟爾伊薩蘭靈修溫泉", en: "Esalen Sanctuary Springs, Big Sur, USA" },
         category: "luxuryResort",
         lat: 36.1264,
         lng: -121.6375,
         visitedYear: 2024,
         rating: 5.0,
-        price: 490,
+        price: 15500,
         mineral: "chloride",
         image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -352,16 +341,13 @@
       },
       {
         id: "onsen-7",
-        name: {
-          zh: "紐西蘭羅托魯瓦・波利尼西亞泥漿湯坊",
-          en: "Polynesian Spa, Rotorua, New Zealand"
-        },
+        name: { zh: "紐西蘭羅托魯瓦・波利尼西亞泥漿湯坊", en: "Polynesian Spa, Rotorua, New Zealand" },
         category: "localFeature",
         lat: -38.1368,
         lng: 176.2497,
         visitedYear: 2023,
         rating: 4.6,
-        price: 95,
+        price: 2900,
         mineral: "sulfur",
         image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -371,16 +357,13 @@
       },
       {
         id: "onsen-8",
-        name: {
-          zh: "台灣台北・北投瀧乃湯百年錢湯",
-          en: "Longnice Centennial Baths, Beitou, Taiwan"
-        },
+        name: { zh: "台灣台北・北投瀧乃湯百年錢湯", en: "Longnice Centennial Baths, Beitou, Taiwan" },
         category: "localFeature",
         lat: 25.1378,
         lng: 121.5074,
         visitedYear: 2023,
         rating: 4.7,
-        price: 15,
+        price: 150,
         mineral: "iron",
         image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
         description: {
@@ -390,7 +373,6 @@
       }
     ];
 
-    // 焦點城市捷徑（嚴格對應目前已標注的 5 個地點，純中英單語切換）
     const sanctuaries = [
       { name: { zh: "台灣", en: "Taiwan" }, lat: 23.8, lng: 121.0, zoom: 8 },
       { name: { zh: "日本", en: "Japan" }, lat: 35.6, lng: 138.5, zoom: 6 },
@@ -407,6 +389,7 @@
       const [selectedMarker, setSelectedMarker] = useState(null);
       const [isEditing, setIsEditing] = useState(false);
       const [copySuccess, setCopySuccess] = useState(false);
+      const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
       const [formState, setFormState] = useState({
         id: '',
@@ -415,7 +398,7 @@
         category: 'localFeature',
         visitedYear: 2024,
         rating: 4.8,
-        price: 180,
+        price: 5000,
         mineral: 'sulfur',
         image: '',
         descZh: '',
@@ -427,7 +410,7 @@
       const [searchQuery, setSearchQuery] = useState('');
       const [selectedCategory, setSelectedCategory] = useState('ALL');
       const [selectedMineral, setSelectedMineral] = useState('ALL');
-      const [priceMax, setPriceMax] = useState(600);
+      const [priceMax, setPriceMax] = useState(25000);
       const [layerMode, setLayerMode] = useState('normal');
 
       const mapRef = useRef(null);
@@ -458,11 +441,9 @@
         }
       };
 
-      // 取得特定語言下的名稱與說明
       const getName = (m) => (typeof m.name === 'object' ? (m.name[lang] || m.name.zh || m.name.en) : m.name);
       const getDesc = (m) => (typeof m.description === 'object' ? (m.description[lang] || m.description.zh || m.description.en) : m.description);
 
-      // 增強型模糊與分詞搜尋邏輯
       const filteredMarkers = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
         return markers.filter((m) => {
@@ -489,29 +470,24 @@
         });
       }, [markers, searchQuery, selectedCategory, selectedMineral, priceMax, lang]);
 
-      // 當使用者點擊切換「療癒型態」或篩選條件變更時，自動計算邊界 (fitBounds)，將該型態內所有溫泉地點完整囊括呈現！
       useEffect(() => {
         if (!mapInstanceRef.current || filteredMarkers.length === 0) return;
 
-        // 如果該分類下有超過一個地點，自動調整縮放與中心以全數一目瞭然
         if (filteredMarkers.length > 1) {
           const bounds = L.latLngBounds(filteredMarkers.map((m) => [m.lat, m.lng]));
           mapInstanceRef.current.fitBounds(bounds, {
-            padding: [60, 60],
+            padding: [40, 40],
             maxZoom: 9,
             animate: true,
-            duration: 1.5
+            duration: 1.2
           });
-          // 關閉詳情視窗以確保所有標注無死角可見
           setSelectedMarker(null);
         } else if (filteredMarkers.length === 1) {
-          // 若僅有單一地點，直接飛往該處特寫
           flyToLocation(filteredMarkers[0].lat, filteredMarkers[0].lng, 11);
           setSelectedMarker(filteredMarkers[0]);
         }
       }, [selectedCategory, selectedMineral]);
 
-      // 當輸入搜尋且產生匹配時，地圖直接平移飛往目標上方
       useEffect(() => {
         const query = searchQuery.trim();
         if (!query || !mapInstanceRef.current) return;
@@ -535,12 +511,11 @@
         }
       };
 
-      // 初始化開源 OSM 地圖 (100% 免 API Key)
       useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
           const map = L.map(mapRef.current, {
-            center: [28.0, 125.0],
-            zoom: 4,
+            center: [25.0, 15.0],
+            zoom: 2,
             minZoom: 2,
             maxZoom: 18,
             zoomControl: false,
@@ -565,7 +540,7 @@
               category: 'localFeature',
               visitedYear: 2024,
               rating: 4.8,
-              price: 180,
+              price: 3600,
               mineral: 'sulfur',
               image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
               descZh: '',
@@ -588,7 +563,6 @@
         };
       }, []);
 
-      // 渲染標記與地熱能量圈
       useEffect(() => {
         if (!mapInstanceRef.current || !markersLayerGroupRef.current || !heatCirclesLayerGroupRef.current) return;
 
@@ -597,16 +571,16 @@
 
         if (layerMode === 'heatmap') {
           filteredMarkers.forEach((m) => {
-            const circleRadius = (m.price * 750) + 60000;
+            const circleRadius = (m.price * 20) + 50000;
             const circle = L.circle([m.lat, m.lng], {
               radius: circleRadius,
-              fillColor: m.price > 250 ? '#BA6B50' : '#8C684E',
+              fillColor: m.price > 8000 ? '#BA6B50' : '#8C684E',
               fillOpacity: 0.38,
               stroke: true,
               color: '#3B4D3C',
               weight: 1,
             });
-            circle.bindTooltip(`<b>${getName(m)}</b><br/>${t.avgSpend}: $${m.price} ${t.priceUnit}`, { sticky: true });
+            circle.bindTooltip(`<b>${getName(m)}</b><br/>${t.avgSpend}: NT$ ${m.price.toLocaleString()} ${t.priceUnit}`, { sticky: true });
             heatCirclesLayerGroupRef.current.addLayer(circle);
           });
         } else {
@@ -615,31 +589,31 @@
 
             const customHtml = `
               <div class="group relative cursor-pointer flex flex-col items-center">
-                <div class="w-9 h-9 rounded-full ${config.badgeColor} border-[2px] border-wellness-cream shadow-md flex items-center justify-center transform transition duration-300 group-hover:scale-125 group-hover:-translate-y-1">
+                <div class="w-8 h-8 md:w-9 md:h-9 rounded-full ${config.badgeColor} border-[2px] border-wellness-cream shadow-md flex items-center justify-center transform transition duration-300 group-hover:scale-125">
                   <span class="text-xs font-serif italic tracking-tighter">♨</span>
-                  <div class="absolute -top-1.5 -right-1 bg-wellness-cream text-wellness-forest text-[10px] font-serif font-bold px-1.5 py-0.2 rounded-full border border-wellness-sandstone shadow-sm">
+                  <div class="absolute -top-1.5 -right-1 bg-wellness-cream text-wellness-forest text-[9px] font-serif font-bold px-1 py-0.1 rounded-full border border-wellness-sandstone shadow-sm">
                     ${m.rating}
                   </div>
                 </div>
-                <div class="w-2 h-1 bg-wellness-forest/30 rounded-full blur-[1.5px] mt-1"></div>
+                <div class="w-2 h-1 bg-wellness-forest/30 rounded-full blur-[1px] mt-0.5"></div>
               </div>
             `;
 
             const customIcon = L.divIcon({
               className: 'custom-wellness-marker',
               html: customHtml,
-              iconSize: [36, 42],
-              iconAnchor: [18, 38],
-              popupAnchor: [0, -36]
+              iconSize: [32, 38],
+              iconAnchor: [16, 34],
+              popupAnchor: [0, -32]
             });
 
             const marker = L.marker([m.lat, m.lng], { icon: customIcon });
 
             const tooltipContent = `
-              <div class="w-60 p-3 bg-wellness-cream text-wellness-charcoal">
-                <img src="${m.image}" class="w-full h-28 object-cover rounded-xl mb-2.5 shadow-sm" />
-                <div class="font-serif text-sm font-semibold tracking-wide text-wellness-forest">${getName(m)}</div>
-                <div class="text-[11px] text-wellness-earth flex justify-between items-center mt-1.5 pt-1.5 border-t border-wellness-sandstone/60">
+              <div class="w-56 p-2.5 bg-wellness-cream text-wellness-charcoal">
+                <img src="${m.image}" class="w-full h-24 object-cover rounded-xl mb-2 shadow-sm" />
+                <div class="font-serif text-xs font-semibold tracking-wide text-wellness-forest">${getName(m)}</div>
+                <div class="text-[10px] text-wellness-earth flex justify-between items-center mt-1 pt-1 border-t border-wellness-sandstone/60">
                   <span class="font-medium">${config.label}</span>
                   <span class="font-serif">${m.visitedYear} ${lang === 'zh' ? '年' : ''}</span>
                 </div>
@@ -648,7 +622,7 @@
             marker.bindTooltip(tooltipContent, {
               direction: 'top',
               opacity: 0.98,
-              offset: [0, -28]
+              offset: [0, -25]
             });
 
             marker.on('click', () => {
@@ -661,20 +635,19 @@
         }
       }, [filteredMarkers, layerMode, lang]);
 
-      // 切換為全球宏觀視角 (看得到全世界所有地點標注)
       const switchToGlobalView = (mode) => {
         setLayerMode(mode);
         setSelectedMarker(null);
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([25.0, 15.0], 2, {
-            duration: 1.6
+            duration: 1.4
           });
         }
       };
 
       const flyToLocation = (lat, lng, zoomLevel) => {
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([lat, lng], zoomLevel, { duration: 1.8 });
+          mapInstanceRef.current.flyTo([lat, lng], zoomLevel, { duration: 1.4 });
         }
       };
 
@@ -728,42 +701,63 @@
       };
 
       return (
-        <div className="w-full h-screen flex flex-col bg-wellness-cream text-wellness-charcoal font-sans overflow-hidden">
-          {/* 1. 頂部導航列 (純單語呈現) */}
-          <header className="h-20 border-b border-wellness-sandstone bg-wellness-cream/90 backdrop-blur-md px-8 flex items-center justify-between relative z-[2000]">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-full bg-wellness-forest text-wellness-sand flex items-center justify-center shadow-sm border border-wellness-moss/30">
-                <Icons.Leaf className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="font-serif text-xl md:text-2xl font-bold tracking-wider text-wellness-forest uppercase">
-                    {t.brand}
-                  </h1>
-                  <span className="text-[10px] tracking-widest px-2.5 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone font-medium">
-                    {t.badge}
-                  </span>
+        <div className="w-full h-full flex flex-col bg-wellness-cream text-wellness-charcoal font-sans overflow-hidden">
+          {/* 1. 彈性響應式導航列（支援手機自動換行，不切斷邊界） */}
+          <header className="border-b border-wellness-sandstone bg-wellness-cream/95 backdrop-blur-md px-3 md:px-8 py-2 md:py-0 min-h-[3.75rem] md:h-20 flex flex-wrap items-center justify-between gap-2 relative z-[2000] w-full shrink-0">
+            {/* 品牌標誌與移動端控制鍵 */}
+            <div className="flex items-center justify-between w-full md:w-auto">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-wellness-forest text-wellness-sand flex items-center justify-center shadow-sm shrink-0">
+                  <Icons.Leaf className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
-                <p className="text-xs text-wellness-earth tracking-wide mt-0.5 font-light">
-                  {t.subtagline}
-                </p>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-serif text-base md:text-xl font-bold tracking-wider text-wellness-forest uppercase">
+                      {t.brand}
+                    </h1>
+                    <span className="hidden sm:inline-block text-[9px] tracking-widest px-2 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone font-medium">
+                      {t.badge}
+                    </span>
+                  </div>
+                  <p className="text-[10px] md:text-xs text-wellness-earth font-light truncate max-w-[190px] sm:max-w-xs md:max-w-none">
+                    {t.subtagline}
+                  </p>
+                </div>
+              </div>
+
+              {/* 手機快捷操作（篩選與語言） */}
+              <div className="flex items-center gap-1.5 lg:hidden">
+                <button
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="px-2.5 py-1 rounded-full border border-wellness-sandstone bg-white text-wellness-forest shadow-xs flex items-center gap-1 text-[11px]"
+                >
+                  <Icons.Sliders className="w-3.5 h-3.5 text-wellness-earth" />
+                  <span className="font-serif font-semibold">{filteredMarkers.length}</span>
+                </button>
+                <button
+                  onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+                  className="px-2 py-1 rounded-full border border-wellness-sandstone bg-white text-wellness-forest text-[11px] font-semibold"
+                >
+                  {lang === 'zh' ? 'EN' : '中'}
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* 搜尋欄位 */}
-              <div className="relative w-64 md:w-72">
-                <Icons.Search className="w-4 h-4 text-wellness-earth/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            {/* 搜尋欄位與功能群組 */}
+            <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+              {/* 搜尋欄 */}
+              <div className="relative flex-1 md:w-64 lg:w-72">
+                <Icons.Search className="w-3.5 h-3.5 text-wellness-earth/60 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
                   placeholder={t.searchPlaceholder}
-                  className="w-full pl-9 pr-8 py-2 text-xs bg-wellness-sand/60 border border-wellness-sandstone rounded-full focus:outline-none focus:ring-1 focus:ring-wellness-terracotta focus:bg-white transition placeholder-wellness-charcoal/40"
+                  className="w-full pl-8 pr-7 py-1.5 text-[11px] md:text-xs bg-wellness-sand/60 border border-wellness-sandstone rounded-full focus:outline-none focus:ring-1 focus:ring-wellness-terracotta focus:bg-white transition placeholder-wellness-charcoal/40"
                 />
                 {searchQuery.trim() && (
-                  <div className="absolute left-0 right-0 top-full mt-2 bg-wellness-cream border border-wellness-sandstone rounded-2xl shadow-2xl overflow-hidden z-[3000] max-h-80 overflow-y-auto min-w-[300px]">
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-wellness-cream border border-wellness-sandstone rounded-2xl shadow-2xl overflow-hidden z-[3000] max-h-72 overflow-y-auto w-full">
                     {filteredMarkers.length > 0 ? (
                       filteredMarkers.map((item) => (
                         <div
@@ -772,17 +766,17 @@
                             setSelectedMarker(item);
                             flyToLocation(item.lat, item.lng, 12);
                           }}
-                          className="px-3.5 py-2.5 hover:bg-wellness-sand/80 cursor-pointer border-b border-wellness-sandstone/40 last:border-0 flex items-center justify-between transition"
+                          className="px-3 py-2 hover:bg-wellness-sand/80 cursor-pointer border-b border-wellness-sandstone/40 last:border-0 flex items-center justify-between transition"
                         >
                           <div className="truncate pr-2">
                             <div className="font-serif text-xs font-semibold text-wellness-forest truncate">{getName(item)}</div>
-                            <div className="text-[10px] text-wellness-earth truncate">{categoryConfig[item.category]?.label} · {item.visitedYear}{lang === 'zh' ? '年' : ''}</div>
+                            <div className="text-[10px] text-wellness-earth truncate">{categoryConfig[item.category]?.label}</div>
                           </div>
-                          <span className="text-[10px] font-serif text-wellness-terracotta font-semibold shrink-0">${item.price}</span>
+                          <span className="text-[10px] font-serif text-wellness-terracotta font-semibold shrink-0">NT$ {item.price.toLocaleString()}</span>
                         </div>
                       ))
                     ) : (
-                      <div className="p-3 text-[11px] text-wellness-earth/70 text-center font-serif italic">
+                      <div className="p-2.5 text-[11px] text-wellness-earth/70 text-center font-serif italic">
                         {lang === 'zh' ? '無相符的溫泉聖所' : 'No matching sanctuaries found'}
                       </div>
                     )}
@@ -791,96 +785,95 @@
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-wellness-earth hover:text-wellness-charcoal"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-wellness-earth hover:text-wellness-charcoal"
                   >
-                    <Icons.X className="w-3.5 h-3.5" />
+                    <Icons.X className="w-3 h-3" />
                   </button>
                 )}
               </div>
 
-              {/* 視圖切換 (點擊任一模式皆自動切回全球 Global View) */}
-              <div className="flex items-center bg-wellness-sand p-1 rounded-full border border-wellness-sandstone">
+              {/* 圖層模式切換 */}
+              <div className="flex items-center bg-wellness-sand p-0.5 md:p-1 rounded-full border border-wellness-sandstone shrink-0">
                 <button
                   onClick={() => switchToGlobalView('normal')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs rounded-full font-medium transition ${
+                  className={`flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs rounded-full font-medium transition ${
                     layerMode === 'normal'
                       ? 'bg-wellness-forest text-wellness-cream shadow-sm'
                       : 'text-wellness-charcoal/70 hover:text-wellness-charcoal'
                   }`}
                 >
-                  <Icons.Compass className="w-3.5 h-3.5" />
-                  {t.normalLayer}
+                  <Icons.Compass className="w-3 h-3" />
+                  <span>{t.normalLayer}</span>
                 </button>
                 <button
                   onClick={() => switchToGlobalView('heatmap')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs rounded-full font-medium transition ${
+                  className={`flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs rounded-full font-medium transition ${
                     layerMode === 'heatmap'
                       ? 'bg-wellness-terracotta text-white shadow-sm'
                       : 'text-wellness-charcoal/70 hover:text-wellness-charcoal'
                   }`}
                 >
-                  <Icons.Activity className="w-3.5 h-3.5" />
-                  {t.heatmapLayer}
+                  <Icons.Activity className="w-3 h-3" />
+                  <span>{t.heatmapLayer}</span>
                 </button>
               </div>
 
-              {/* 導出收藏 */}
+              {/* 匯出與桌面語言鍵 */}
               <button
                 onClick={handleExportJson}
-                className="flex items-center gap-1.5 text-xs font-medium px-4 py-2 bg-white hover:bg-wellness-sand text-wellness-forest rounded-full border border-wellness-sandstone shadow-sm transition"
+                className="hidden lg:flex items-center gap-1 text-xs font-medium px-3.5 py-1.5 bg-white hover:bg-wellness-sand text-wellness-forest rounded-full border border-wellness-sandstone shadow-sm shrink-0"
               >
-                {copySuccess ? <Icons.Check className="w-3.5 h-3.5 text-wellness-moss" /> : <Icons.Download className="w-3.5 h-3.5" />}
+                {copySuccess ? <Icons.Check className="w-3 h-3 text-wellness-moss" /> : <Icons.Download className="w-3 h-3" />}
                 {copySuccess ? t.copied : t.exportJson}
               </button>
 
-              {/* 語言切換按鈕 */}
               <button
                 onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
-                className="flex items-center gap-1 text-xs font-semibold px-3.5 py-2 rounded-full border border-wellness-sandstone bg-white text-wellness-forest hover:bg-wellness-sand transition"
+                className="hidden lg:flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full border border-wellness-sandstone bg-white text-wellness-forest hover:bg-wellness-sand shrink-0"
               >
-                <Icons.Globe className="w-3.5 h-3.5" />
+                <Icons.Globe className="w-3 h-3" />
                 {lang === 'zh' ? 'English' : '繁體中文'}
               </button>
             </div>
           </header>
 
-          {/* 2. 焦點目的地捷徑列 (移除瑞士，純單語) */}
-          <div className="bg-wellness-sand/40 border-b border-wellness-sandstone px-8 py-2.5 flex items-center gap-2.5 overflow-x-auto text-xs z-10">
-            <span className="text-wellness-forest font-serif italic text-sm tracking-wide flex items-center gap-1.5 shrink-0 pr-2">
-              <Icons.Sparkles className="w-3.5 h-3.5 text-wellness-terracotta" />
+          {/* 2. 焦點目的地捷徑列（可橫向滑動） */}
+          <div className="bg-wellness-sand/40 border-b border-wellness-sandstone px-3 md:px-8 py-1.5 flex items-center gap-2 overflow-x-auto text-xs z-10 shrink-0">
+            <span className="text-wellness-forest font-serif italic text-xs tracking-wide flex items-center gap-1 shrink-0">
+              <Icons.Sparkles className="w-3 h-3 text-wellness-terracotta" />
               {t.quickJump}
             </span>
             {sanctuaries.map((d) => (
               <button
                 key={d.name[lang]}
                 onClick={() => flyToLocation(d.lat, d.lng, d.zoom)}
-                className="px-3.5 py-1 bg-white/80 hover:bg-wellness-moss hover:text-white border border-wellness-sandstone/80 rounded-full shrink-0 transition text-wellness-charcoal/80 font-normal shadow-2xs"
+                className="px-2.5 py-0.5 bg-white/80 hover:bg-wellness-moss hover:text-white border border-wellness-sandstone/80 rounded-full shrink-0 transition text-wellness-charcoal/80 text-[11px]"
               >
                 {d.name[lang]}
               </button>
             ))}
           </div>
 
-          <div className="flex-1 flex overflow-hidden relative">
-            {/* 3. 左側古典沙龍抽屜 */}
-            <aside className="w-84 border-r border-wellness-sandstone bg-wellness-cream/95 flex flex-col z-10 shadow-sm">
-              <div className="p-5 border-b border-wellness-sandstone/60 flex items-center justify-between">
-                <span className="font-serif text-sm tracking-wider uppercase text-wellness-forest flex items-center gap-2">
-                  <Icons.Sliders className="w-4 h-4 text-wellness-earth" />
-                  {lang === 'zh' ? '身心靈指標篩選' : 'Criteria & Filters'}
+          {/* 3. 主地圖與側欄容器 */}
+          <div className="flex-1 flex overflow-hidden relative w-full h-full">
+            {/* 桌面側邊欄 */}
+            <aside className="hidden lg:flex w-72 xl:w-80 border-r border-wellness-sandstone bg-wellness-cream/95 flex-col z-10 shadow-sm shrink-0">
+              <div className="p-4 border-b border-wellness-sandstone/60 flex items-center justify-between">
+                <span className="font-serif text-xs uppercase tracking-wider text-wellness-forest flex items-center gap-1.5 font-semibold">
+                  <Icons.Sliders className="w-3.5 h-3.5 text-wellness-earth" />
+                  {lang === 'zh' ? '指標篩選' : 'Filters'}
                 </span>
-                <span className="text-xs font-serif italic px-2.5 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone">
-                  {filteredMarkers.length} / {markers.length} {lang === 'zh' ? '處' : 'places'}
+                <span className="text-[11px] font-serif px-2 py-0.5 rounded-full bg-wellness-sand text-wellness-moss border border-wellness-sandstone">
+                  {filteredMarkers.length} / {markers.length}
                 </span>
               </div>
 
-              <div className="p-5 space-y-6 overflow-y-auto flex-1">
-                {/* 湯型分類 */}
+              <div className="p-4 space-y-5 overflow-y-auto flex-1">
                 <div>
-                  <label className="font-serif text-sm text-wellness-forest font-semibold block mb-2.5">
+                  <label className="font-serif text-xs text-wellness-forest font-semibold block mb-2">
                     {t.typeLabel}
                   </label>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {['ALL', 'wildSpring', 'localFeature', 'historicRyokan', 'luxuryResort'].map((key) => {
                       const isActive = selectedCategory === key;
                       const label = key === 'ALL' ? t.allTypes : categoryConfig[key]?.label;
@@ -888,13 +881,13 @@
                         <button
                           key={key}
                           onClick={() => setSelectedCategory(key)}
-                          className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition flex items-center justify-between ${
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs transition flex items-center justify-between ${
                             isActive
                               ? 'bg-wellness-forest text-wellness-cream shadow-sm font-medium'
                               : 'bg-wellness-sand/50 hover:bg-wellness-sand text-wellness-charcoal/80'
                           }`}
                         >
-                          <span className="flex items-center gap-2 truncate">
+                          <span className="truncate flex items-center gap-1.5">
                             {key !== 'ALL' && (
                               <span
                                 className="w-2 h-2 rounded-full shrink-0"
@@ -903,10 +896,8 @@
                             )}
                             {label}
                           </span>
-                          <span className="text-[11px] font-serif opacity-70">
-                            {key === 'ALL'
-                              ? markers.length
-                              : markers.filter((m) => m.category === key).length}
+                          <span className="text-[10px] opacity-70">
+                            {key === 'ALL' ? markers.length : markers.filter((m) => m.category === key).length}
                           </span>
                         </button>
                       );
@@ -914,16 +905,15 @@
                   </div>
                 </div>
 
-                {/* 泉質與芳療成分 */}
                 <div>
-                  <label className="font-serif text-sm text-wellness-forest font-semibold block mb-2">
-                    <Icons.Droplets className="w-3.5 h-3.5 inline mr-1 text-wellness-moss" />
+                  <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1.5">
+                    <Icons.Droplets className="w-3 h-3 inline mr-1 text-wellness-moss" />
                     {t.mineralLabel}
                   </label>
                   <select
                     value={selectedMineral}
                     onChange={(e) => setSelectedMineral(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl bg-wellness-sand/60 border border-wellness-sandstone text-wellness-charcoal focus:outline-none focus:ring-1 focus:ring-wellness-moss"
+                    className="w-full text-xs p-2 rounded-xl bg-wellness-sand/60 border border-wellness-sandstone text-wellness-charcoal"
                   >
                     <option value="ALL">{t.allMinerals}</option>
                     <option value="sulfur">{t.sulfur}</option>
@@ -933,106 +923,164 @@
                   </select>
                 </div>
 
-                {/* 客單價體驗預算 */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="font-serif text-sm text-wellness-forest font-semibold">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="font-serif text-xs text-wellness-forest font-semibold">
                       {t.priceRange}
                     </label>
                     <span className="text-xs font-serif font-bold text-wellness-terracotta">
-                      ≤ ${priceMax} {t.priceUnit}
+                      ≤ NT$ {priceMax.toLocaleString()}
                     </span>
                   </div>
                   <input
                     type="range"
-                    min="30"
-                    max="600"
-                    step="20"
+                    min="500"
+                    max="30000"
+                    step="500"
                     value={priceMax}
                     onChange={(e) => setPriceMax(Number(e.target.value))}
-                    className="w-full accent-wellness-moss h-1.5 bg-wellness-sandstone rounded-lg cursor-pointer"
+                    className="w-full accent-wellness-moss h-1 bg-wellness-sandstone rounded-lg cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] font-serif text-wellness-earth mt-1.5">
-                    <span>$30</span>
-                    <span>$300</span>
-                    <span>$600+</span>
+                  <div className="flex justify-between text-[9px] font-serif text-wellness-earth mt-1">
+                    <span>500</span>
+                    <span>15,000</span>
+                    <span>30,000+</span>
                   </div>
                 </div>
 
-                {/* 提示指引 */}
-                <div className="p-4 bg-wellness-sand/70 border border-wellness-sandstone rounded-2xl text-xs text-wellness-charcoal/80 flex items-start gap-3">
-                  <Icons.Leaf className="w-4 h-4 shrink-0 text-wellness-moss mt-0.5" />
-                  <p className="font-light leading-relaxed">{t.clickToAddTip}</p>
+                <div className="p-3 bg-wellness-sand/70 border border-wellness-sandstone rounded-2xl text-[11px] text-wellness-charcoal/80 flex items-start gap-2">
+                  <Icons.Leaf className="w-3.5 h-3.5 shrink-0 text-wellness-moss mt-0.5" />
+                  <p className="font-light leading-snug">{t.clickToAddTip}</p>
                 </div>
               </div>
             </aside>
 
-            {/* 4. 地圖容器主畫布 (OpenStreetMap) */}
-            <main className="flex-1 h-full relative overflow-hidden">
-              <div ref={mapRef} className="w-full h-full" />
-
-              {/* 5. 點擊彈出的名湯詳情卡 */}
-              {selectedMarker && !isEditing && (
-                <div className="absolute right-8 top-8 bottom-8 w-[400px] bg-wellness-cream/95 backdrop-blur-md border border-wellness-sandstone rounded-3xl shadow-2xl p-7 flex flex-col z-[1000] overflow-y-auto">
-                  <div className="flex justify-between items-start mb-4">
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full font-serif tracking-wider ${
-                        categoryConfig[selectedMarker.category]?.badgeColor
-                      }`}
-                    >
-                      {categoryConfig[selectedMarker.category]?.label}
+            {/* 手機版滑動抽屜 */}
+            {isMobileFilterOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[2600] flex flex-col justify-end lg:hidden">
+                <div className="fixed inset-0" onClick={() => setIsMobileFilterOpen(false)} />
+                <div className="relative bg-wellness-cream rounded-t-3xl max-h-[80vh] flex flex-col shadow-2xl border-t border-wellness-sandstone overflow-hidden z-10">
+                  <div className="p-3.5 border-b border-wellness-sandstone/60 flex items-center justify-between">
+                    <span className="font-serif text-xs uppercase font-semibold text-wellness-forest flex items-center gap-1.5">
+                      <Icons.Sliders className="w-3.5 h-3.5 text-wellness-earth" />
+                      {lang === 'zh' ? '指標篩選' : 'Filters'}
                     </span>
-                    <button
-                      onClick={() => setSelectedMarker(null)}
-                      className="p-1.5 rounded-full hover:bg-wellness-sand text-wellness-earth hover:text-wellness-charcoal transition"
-                    >
+                    <button onClick={() => setIsMobileFilterOpen(false)} className="p-1 text-wellness-earth">
                       <Icons.X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="relative rounded-2xl overflow-hidden mb-5 shadow-sm">
-                    <img
-                      src={selectedMarker.image}
-                      alt={getName(selectedMarker)}
-                      className="w-full h-48 object-cover transform hover:scale-105 transition duration-700"
-                    />
-                    <div className="absolute top-3 right-3 bg-wellness-cream/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-serif font-bold text-wellness-forest shadow-sm">
+                  <div className="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
+                    <div>
+                      <label className="font-serif font-semibold block mb-1.5">{t.typeLabel}</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {['ALL', 'wildSpring', 'localFeature', 'historicRyokan', 'luxuryResort'].map((key) => {
+                          const isActive = selectedCategory === key;
+                          const label = key === 'ALL' ? t.allTypes : categoryConfig[key]?.label;
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => setSelectedCategory(key)}
+                              className={`px-2.5 py-1.5 rounded-lg text-left truncate ${
+                                isActive ? 'bg-wellness-forest text-white' : 'bg-wellness-sand/60 text-wellness-charcoal'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-serif font-semibold block mb-1">{t.mineralLabel}</label>
+                      <select
+                        value={selectedMineral}
+                        onChange={(e) => setSelectedMineral(e.target.value)}
+                        className="w-full p-2 rounded-lg bg-wellness-sand/60 border border-wellness-sandstone"
+                      >
+                        <option value="ALL">{t.allMinerals}</option>
+                        <option value="sulfur">{t.sulfur}</option>
+                        <option value="carbonated">{t.carbonated}</option>
+                        <option value="chloride">{t.chloride}</option>
+                        <option value="iron">{t.iron}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <span className="font-serif font-semibold">{t.priceRange}</span>
+                        <span className="font-bold text-wellness-terracotta">≤ NT$ {priceMax.toLocaleString()}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="500"
+                        max="30000"
+                        step="500"
+                        value={priceMax}
+                        onChange={(e) => setPriceMax(Number(e.target.value))}
+                        className="w-full accent-wellness-moss"
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => setIsMobileFilterOpen(false)}
+                      className="w-full py-2.5 rounded-full bg-wellness-forest text-white font-serif text-xs font-semibold"
+                    >
+                      {lang === 'zh' ? '套用並查看結果' : 'Apply Filters'} ({filteredMarkers.length})
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. 地圖主區域 */}
+            <main className="flex-1 h-full relative overflow-hidden w-full">
+              <div ref={mapRef} className="w-full h-full" />
+
+              {/* 5. 詳情卡（手機全寬底部抽屜，桌機浮動面板） */}
+              {selectedMarker && !isEditing && (
+                <div className="fixed inset-x-0 bottom-0 max-h-[82vh] lg:max-h-none lg:h-auto lg:absolute lg:inset-x-auto lg:right-6 lg:top-6 lg:bottom-6 w-full lg:w-96 bg-wellness-cream/95 backdrop-blur-md border-t lg:border border-wellness-sandstone rounded-t-3xl lg:rounded-3xl shadow-2xl p-4 md:p-6 flex flex-col z-[2500] lg:z-[1000] overflow-y-auto">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-serif ${categoryConfig[selectedMarker.category]?.badgeColor}`}>
+                      {categoryConfig[selectedMarker.category]?.label}
+                    </span>
+                    <button onClick={() => setSelectedMarker(null)} className="p-1 text-wellness-earth">
+                      <Icons.X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="relative rounded-xl overflow-hidden mb-3 shadow-xs">
+                    <img src={selectedMarker.image} alt={getName(selectedMarker)} className="w-full h-36 md:h-44 object-cover" />
+                    <div className="absolute top-2 right-2 bg-wellness-cream/90 px-2 py-0.5 rounded-full text-[11px] font-serif font-bold text-wellness-forest shadow-xs">
                       ★ {selectedMarker.rating}
                     </div>
                   </div>
 
-                  <h3 className="font-serif text-xl font-bold text-wellness-forest leading-snug mb-3">
+                  <h3 className="font-serif text-lg font-bold text-wellness-forest leading-snug mb-2">
                     {getName(selectedMarker)}
                   </h3>
 
-                  <p className="text-xs text-wellness-charcoal/70 leading-relaxed font-light mb-6 border-l-2 border-wellness-sandstone pl-3 italic">
+                  <p className="text-xs text-wellness-charcoal/70 leading-relaxed font-light mb-4 border-l-2 border-wellness-sandstone pl-2.5 italic">
                     "{getDesc(selectedMarker)}"
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 mb-6 font-sans">
-                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone">
-                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.visited}</span>
-                      <span className="text-sm font-serif font-semibold text-wellness-forest">{selectedMarker.visitedYear} {lang === 'zh' ? '年' : ''}</span>
+                  <div className="grid grid-cols-2 gap-2 mb-4 font-sans text-xs">
+                    <div className="p-2.5 bg-white rounded-xl border border-wellness-sandstone">
+                      <span className="text-[10px] text-wellness-earth block">{t.visited}</span>
+                      <span className="font-serif font-semibold">{selectedMarker.visitedYear} {lang === 'zh' ? '年' : ''}</span>
                     </div>
-                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone">
-                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.avgSpend}</span>
-                      <span className="text-sm font-serif font-semibold text-wellness-terracotta">${selectedMarker.price} {t.priceUnit}</span>
+                    <div className="p-2.5 bg-white rounded-xl border border-wellness-sandstone">
+                      <span className="text-[10px] text-wellness-earth block">{t.avgSpend}</span>
+                      <span className="font-serif font-semibold text-wellness-terracotta">NT$ {selectedMarker.price.toLocaleString()}</span>
                     </div>
-                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone col-span-2">
-                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.ingredients}</span>
-                      <span className="text-xs font-medium text-wellness-moss">
-                        {t[selectedMarker.mineral] || selectedMarker.mineral}
-                      </span>
-                    </div>
-                    <div className="p-3 bg-white rounded-2xl border border-wellness-sandstone col-span-2">
-                      <span className="text-[10px] text-wellness-earth uppercase tracking-wider block mb-0.5">{t.coordinates}</span>
-                      <span className="text-xs font-mono text-wellness-charcoal/60">
-                        {selectedMarker.lat}° N, {selectedMarker.lng}° E
-                      </span>
+                    <div className="p-2.5 bg-white rounded-xl border border-wellness-sandstone col-span-2">
+                      <span className="text-[10px] text-wellness-earth block">{t.ingredients}</span>
+                      <span className="font-medium text-wellness-moss">{t[selectedMarker.mineral] || selectedMarker.mineral}</span>
                     </div>
                   </div>
 
-                  <div className="mt-auto pt-4 border-t border-wellness-sandstone flex gap-2">
+                  <div className="mt-auto pt-3 border-t border-wellness-sandstone flex gap-2">
                     <button
                       onClick={() => {
                         setFormState({
@@ -1052,14 +1100,14 @@
                         });
                         setIsEditing(true);
                       }}
-                      className="flex-1 py-2.5 rounded-full text-xs font-medium bg-wellness-sand hover:bg-wellness-sandstone text-wellness-forest flex items-center justify-center gap-1.5 transition"
+                      className="flex-1 py-2 rounded-full text-xs font-medium bg-wellness-sand text-wellness-forest flex items-center justify-center gap-1"
                     >
                       <Icons.Edit className="w-3.5 h-3.5" />
                       {t.editBtn}
                     </button>
                     <button
                       onClick={() => handleDeleteMarker(selectedMarker.id)}
-                      className="px-5 py-2.5 rounded-full text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center gap-1.5 transition"
+                      className="px-4 py-2 rounded-full text-xs font-medium bg-rose-50 text-rose-700 flex items-center justify-center gap-1"
                     >
                       <Icons.Trash className="w-3.5 h-3.5" />
                       {t.deleteBtn}
@@ -1070,24 +1118,19 @@
 
               {/* 6. 編輯 / 新增 表單 */}
               {isEditing && (
-                <div className="absolute right-8 top-8 bottom-8 w-[400px] bg-wellness-cream border border-wellness-sandstone rounded-3xl shadow-2xl p-7 flex flex-col z-[1000] overflow-y-auto">
-                  <div className="flex justify-between items-center mb-5 pb-3 border-b border-wellness-sandstone">
-                    <h3 className="font-serif text-lg font-bold text-wellness-forest">
+                <div className="fixed inset-x-0 bottom-0 max-h-[85vh] lg:max-h-none lg:h-auto lg:absolute lg:inset-x-auto lg:right-6 lg:top-6 lg:bottom-6 w-full lg:w-96 bg-wellness-cream border-t lg:border border-wellness-sandstone rounded-t-3xl lg:rounded-3xl shadow-2xl p-4 md:p-6 flex flex-col z-[2500] lg:z-[1000] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4 pb-2 border-b border-wellness-sandstone">
+                    <h3 className="font-serif text-base font-bold text-wellness-forest">
                       {formState.id.startsWith('onsen-') && (formState.nameZh || formState.nameEn) ? t.editMarkerTitle : t.newMarkerTitle}
                     </h3>
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="p-1 rounded-full hover:bg-wellness-sand text-wellness-earth"
-                    >
+                    <button onClick={() => setIsEditing(false)} className="p-1 text-wellness-earth">
                       <Icons.X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <form onSubmit={handleSaveMarker} className="space-y-4 text-xs flex-1 flex flex-col font-sans">
+                  <form onSubmit={handleSaveMarker} className="space-y-3 text-xs flex-1 flex flex-col">
                     <div>
-                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">
-                        {lang === 'zh' ? '溫泉名稱 (中文)' : 'Name (English)'}
-                      </label>
+                      <label className="font-serif font-semibold block mb-1">{lang === 'zh' ? '名稱' : 'Name'}</label>
                       <input
                         type="text"
                         required
@@ -1096,18 +1139,17 @@
                           if (lang === 'zh') setFormState({ ...formState, nameZh: e.target.value });
                           else setFormState({ ...formState, nameEn: e.target.value });
                         }}
-                        placeholder={lang === 'zh' ? '例：黑川秘湯・山吹之宿' : 'e.g. Yamabuki Kurokawa'}
-                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone text-wellness-charcoal focus:outline-none focus:ring-1 focus:ring-wellness-moss"
+                        className="w-full p-2 rounded-lg bg-white border border-wellness-sandstone"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.typeLabel}</label>
+                        <label className="font-serif font-semibold block mb-1">{t.typeLabel}</label>
                         <select
                           value={formState.category}
                           onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                          className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                          className="w-full p-2 rounded-lg bg-white border border-wellness-sandstone"
                         >
                           <option value="wildSpring">{t.wildSpring}</option>
                           <option value="localFeature">{t.localFeature}</option>
@@ -1115,13 +1157,12 @@
                           <option value="luxuryResort">{t.luxuryResort}</option>
                         </select>
                       </div>
-
                       <div>
-                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.mineralLabel}</label>
+                        <label className="font-serif font-semibold block mb-1">{t.mineralLabel}</label>
                         <select
                           value={formState.mineral}
                           onChange={(e) => setFormState({ ...formState, mineral: e.target.value })}
-                          className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                          className="w-full p-2 rounded-lg bg-white border border-wellness-sandstone"
                         >
                           <option value="sulfur">{t.sulfur}</option>
                           <option value="carbonated">{t.carbonated}</option>
@@ -1133,16 +1174,16 @@
 
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.visitedYearLabel}</label>
+                        <label className="block mb-1">{t.visitedYearLabel}</label>
                         <input
                           type="number"
                           value={formState.visitedYear}
                           onChange={(e) => setFormState({ ...formState, visitedYear: Number(e.target.value) })}
-                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                          className="w-full p-1.5 rounded-lg bg-white border border-wellness-sandstone"
                         />
                       </div>
                       <div>
-                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.ratingLabel}</label>
+                        <label className="block mb-1">{t.ratingLabel}</label>
                         <input
                           type="number"
                           step="0.1"
@@ -1150,79 +1191,78 @@
                           max="5"
                           value={formState.rating}
                           onChange={(e) => setFormState({ ...formState, rating: Number(e.target.value) })}
-                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                          className="w-full p-1.5 rounded-lg bg-white border border-wellness-sandstone"
                         />
                       </div>
                       <div>
-                        <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.priceLabel}</label>
+                        <label className="block mb-1">NT$</label>
                         <input
                           type="number"
+                          step="100"
                           value={formState.price}
                           onChange={(e) => setFormState({ ...formState, price: Number(e.target.value) })}
-                          className="w-full p-2 rounded-xl bg-white border border-wellness-sandstone"
+                          className="w-full p-1.5 rounded-lg bg-white border border-wellness-sandstone"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 bg-wellness-sand/40 p-2.5 rounded-2xl border border-wellness-sandstone">
+                    <div className="grid grid-cols-2 gap-2 bg-wellness-sand/40 p-2 rounded-xl border border-wellness-sandstone text-[10px]">
                       <div>
-                        <label className="block text-[10px] text-wellness-earth font-mono">{t.latLabel} (°N)</label>
+                        <span>{t.latLabel}</span>
                         <input
                           type="number"
                           step="0.0001"
                           value={formState.lat}
                           onChange={(e) => setFormState({ ...formState, lat: Number(e.target.value) })}
-                          className="w-full p-1.5 bg-white border border-wellness-sandstone rounded-lg text-xs"
+                          className="w-full p-1 bg-white border border-wellness-sandstone rounded"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-wellness-earth font-mono">{t.lngLabel} (°E)</label>
+                        <span>{t.lngLabel}</span>
                         <input
                           type="number"
                           step="0.0001"
                           value={formState.lng}
                           onChange={(e) => setFormState({ ...formState, lng: Number(e.target.value) })}
-                          className="w-full p-1.5 bg-white border border-wellness-sandstone rounded-lg text-xs"
+                          className="w-full p-1 bg-white border border-wellness-sandstone rounded"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">{t.imgUrlLabel}</label>
+                      <label className="block mb-1">{t.imgUrlLabel}</label>
                       <input
                         type="url"
                         value={formState.image}
                         onChange={(e) => setFormState({ ...formState, image: e.target.value })}
-                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone"
+                        className="w-full p-1.5 rounded-lg bg-white border border-wellness-sandstone"
                       />
                     </div>
 
                     <div className="flex-1">
-                      <label className="font-serif text-xs text-wellness-forest font-semibold block mb-1">
-                        {lang === 'zh' ? '靜修感受筆記 (中文)' : 'Journal Notes (English)'}
-                      </label>
+                      <label className="block mb-1">{lang === 'zh' ? '筆記' : 'Notes'}</label>
                       <textarea
-                        rows={3}
+                        rows={2}
                         value={lang === 'zh' ? formState.descZh : formState.descEn}
                         onChange={(e) => {
                           if (lang === 'zh') setFormState({ ...formState, descZh: e.target.value });
                           else setFormState({ ...formState, descEn: e.target.value });
                         }}
-                        className="w-full p-2.5 rounded-xl bg-white border border-wellness-sandstone h-20 resize-none font-light"
+                        className="w-full p-2 rounded-lg bg-white border border-wellness-sandstone resize-none"
                       />
                     </div>
 
-                    <div className="pt-3 border-t border-wellness-sandstone flex gap-2">
+                    <div className="pt-2 border-t border-wellness-sandstone flex gap-2">
                       <button
                         type="button"
                         onClick={() => setIsEditing(false)}
-                        className="flex-1 py-2.5 rounded-full text-xs font-medium bg-wellness-sand hover:bg-wellness-sandstone text-wellness-forest transition"
+                        className="flex-1 py-2 rounded-full bg-wellness-sand text-wellness-forest"
                       >
                         {t.cancelBtn}
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 py-2.5 rounded-full text-xs font-serif tracking-wider font-semibold bg-wellness-forest hover:bg-wellness-moss text-wellness-cream shadow-md transition"
+                        className="flex-1 py-2 rounded-full bg-wellness-forest text-white font-serif"
                       >
                         {t.saveBtn}
                       </button>
