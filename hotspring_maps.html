@@ -243,7 +243,7 @@
       }
     };
 
-    // 真正造訪過的 6 大溫泉聖所真實資料庫 (讀取自 hotspring collection.xlsx)
+        // 真正造訪過的 6 大溫泉聖所真實資料庫 (含 Google 雲端相簿資料夾連結)
     const initialWorldOnsens = [
       {
         id: "onsen-1",
@@ -260,6 +260,7 @@
         price: 15000,
         mineral: "carbonated",
         image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "https://drive.google.com/drive/folders/1_cFz1nPfKH9WbrNTjS1dhYLVU2HjTXCc",
         description: {
           zh: "天降川溪谷旁的源泉，一泊二食餐廳是米其林一星，飲食評價極高。房間內有桑拿跟泉池，戶外池在溪邊，亦有室內大眾池與貸切私湯。房間腹地極大，包含書房、榻榻米、臥室、玄關更衣室等。整體設計、氣質到家具備品，都襯托出這個價位該有的極致品味。",
           en: "A premier luxury onsen ryokan along the Amorigawa River valley in Kagoshima. Features Michelin 1-star dining, riverside outdoor baths, in-room sauna and private onsen."
@@ -280,6 +281,7 @@
         price: 4000,
         mineral: "sulfur",
         image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "https://drive.google.com/drive/folders/1YQK_rLji1TwdRB96c3UnyZ9AiGNzXy_p?usp=drive_link",
         description: {
           zh: "1917年營業至今的鹿兒島百年森林溫泉旅館。最大特色為隱身於霧島國家公園原始林中的免費私人露天風呂（如「赤松之湯」、「鹿之湯」）。館內附設溫馨交誼廳、黑膠播放室與圖書館，洋溢著百年私人別墅宅邸的歷史古韻。",
           en: "Founded in 1917, a historic centennial forest ryokan in Kirishima National Park, famed for private open-air forest baths surrounded by ancient pine woods."
@@ -300,6 +302,7 @@
         price: 0,
         mineral: "chloride",
         image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "https://drive.google.com/drive/folders/1XFn-lcMUEU2f_6Lnedx0jreIYLt4Rddq?usp=drive_link",
         description: {
           zh: "住宿附近溫泉飯店贈送免費券的海底溫泉！利用海岸天然湧出的溫泉地熱加熱沙子。當溫暖且具重量的熱砂包覆全身，只需10分鐘就能產生如三溫暖般的大量排汗效果，促進血液循環，個人體感比單純泡水還舒服。起身後亦有室內溫泉水可以浸泡。（砂浴期間不可帶手機相機）。",
           en: "Famous natural geothermal sand baths heated by coastal thermal springs. Ten minutes of warm sand envelopment offers deep therapeutic detox and relaxation."
@@ -320,6 +323,7 @@
         price: 6943,
         mineral: "chloride",
         image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "",
         description: {
           zh: "指宿知名的正統日式古蹟老舖溫泉飯店，以連年榮獲日本「料理之宿」第一的頂級精緻懷石聞名。日式庭園典雅清幽，距離隔壁熱門的砂樂砂浴會館僅數步之遙。",
           en: "An esteemed traditional Japanese ryokan in Ibusuki celebrated for award-winning kaiseki culinary excellence and peaceful Zen garden settings."
@@ -340,6 +344,7 @@
         price: 7000,
         mineral: "carbonated",
         image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "https://drive.google.com/drive/folders/1Lhb5E4zSVfsM-wIGvuzRNWT7r_DD9IQV?usp=drive_link",
         description: {
           zh: "在九州數一數二、能邊泡湯邊近距離感受豪邁瀑布與負離子的絕景名宿。全館僅約10間客房，全部皆為獨立離棟設計，並奢侈地附帶專屬的室內湯屋與露天風呂，每一棟都有純天然源泉。絕景「瀧見之湯」大眾露天池緊鄰天然瀑布與溪流，僅接待大人入住，極具隱私與遠離塵囂之美。",
           en: "A secluded luxury hot spring ryokan nestled next to a rushing natural waterfall. Features detached villas with private onsen and the dramatic Takimi-no-yu."
@@ -360,6 +365,7 @@
         price: 6000,
         mineral: "sulfate",
         image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80",
+        driveFolder: "https://drive.google.com/drive/folders/1AFR6nf1wmkjrWHQMW_NilT6oVFQdwvsB?usp=drive_link",
         description: {
           zh: "坐落於雄偉阿蘇五岳南麓大自然懷抱中的療癒名所。全館客房皆為獨立離棟別莊，每間房皆附帶專屬的天然露天風呂，能自在享受源泉掛け流し的純淨硫酸鹽泉滋養。",
           en: "Detached peaceful guest villas with private outdoor onsen baths, surrounded by the majestic natural mountain scenery of Minamiaso."
@@ -1064,6 +1070,21 @@
                   <p className="text-xs text-wellness-charcoal/70 leading-relaxed font-light mb-4 border-l-2 border-wellness-sandstone pl-2.5 italic">
                     "{getDesc(selectedMarker)}"
                   </p>
+
+                  {selectedMarker.driveFolder && (
+                    <a
+                      href={selectedMarker.driveFolder}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-3.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/70 text-amber-800 text-xs flex items-center justify-between transition group shadow-2xs"
+                    >
+                      <span className="flex items-center gap-2 font-medium">
+                        <span className="text-base">📸</span>
+                        <span>{lang === 'zh' ? '查看我的雲端相簿相片 (Google Drive)' : 'View Google Drive Photo Album'}</span>
+                      </span>
+                      <span className="text-[11px] text-amber-600 group-hover:translate-x-0.5 transition">↗</span>
+                    </a>
+                  )}
 
                   <div className="grid grid-cols-2 gap-2 mb-4 font-sans text-xs">
                     <div className="p-2.5 bg-white rounded-xl border border-wellness-sandstone">
