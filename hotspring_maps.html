@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!-- 關鍵 1：開放使用者雙指縮放，解除鎖死限制 -->
+  <!-- 開放使用者手勢縮放，解決手機版無法縮放與右側截斷問題 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
   <title>AURA ON-SEN | 世界溫泉巡禮・身心靈療癒地圖</title>
   <!-- Tailwind CSS CDN -->
@@ -59,7 +59,6 @@
       background-color: #FAF8F5;
       color: #232523;
     }
-    /* 取代固定 100vh，採用更適合行動裝置瀏覽器工具列動態高度的 dvh */
     #root {
       width: 100%;
       height: 100%;
@@ -157,14 +156,15 @@
         searchPlaceholder: "尋訪秘境名湯、泉質或地點...",
         allTypes: "所有名湯型態",
         allMinerals: "全系列泉質成分",
-        wildSpring: "自然野溪・原生態秘湯",
-        localFeature: "人文古韻・在地名湯",
-        historicRyokan: "傳承名宿・百年老舖",
+        wildSpring: "自然野溪・瀑布源泉",
+        localFeature: "在地特色・療癒之鄉",
+        historicRyokan: "傳承名宿・百年古蹟",
         luxuryResort: "奢華水療・頂級靜修",
         sulfur: "白濁硫磺泉",
         carbonated: "碳酸氫鈉泉",
         chloride: "深層氯化物泉",
         iron: "金褐色鐵泉",
+        sulfate: "純淨硫酸鹽泉",
         viewMode: "感知圖層",
         normalLayer: "經典地標",
         heatmapLayer: "地熱能量場",
@@ -179,15 +179,15 @@
         visitedYearLabel: "造訪年份",
         ratingLabel: "心靈契合度 (評分)",
         mineralLabel: "核心泉質",
-        priceLabel: "平均客單價 (新台幣)",
-        descLabel: "靜修感受與隨筆筆記",
+        priceLabel: "平均客單價 (新台幣 NT$)",
+        descLabel: "靜修感受與體驗心得",
         imgUrlLabel: "影像連結 (網址)",
         saveBtn: "珍藏標注",
         deleteBtn: "移除記憶",
         editBtn: "編輯筆記",
         cancelBtn: "返回",
         visited: "造訪年份",
-        avgSpend: "預算級距",
+        avgSpend: "每人每晚預算",
         ingredients: "泉質成分",
         coordinates: "地理坐標",
         latLabel: "緯度",
@@ -202,14 +202,15 @@
         searchPlaceholder: "Search sanctuaries, mineral waters...",
         allTypes: "All Sanctuaries",
         allMinerals: "All Mineral Compositions",
-        wildSpring: "Wild River Spring",
-        localFeature: "Cultural Heritage Spring",
-        historicRyokan: "Historic Ryokan",
+        wildSpring: "Wild Waterfall Spring",
+        localFeature: "Local Specialty",
+        historicRyokan: "Centennial Historic Ryokan",
         luxuryResort: "Luxury Spa Retreat",
         sulfur: "Sulfur Spring",
         carbonated: "Bicarbonate Spring",
         chloride: "Chloride Marine Spring",
         iron: "Rich Iron Spring",
+        sulfate: "Sulfate Spring",
         viewMode: "Layer Mode",
         normalLayer: "Sanctuary Pins",
         heatmapLayer: "Thermal Field",
@@ -224,15 +225,15 @@
         visitedYearLabel: "Visited Year",
         ratingLabel: "Rating (Score)",
         mineralLabel: "Mineral Essence",
-        priceLabel: "Average Spend (TWD)",
-        descLabel: "Sensory Journal Notes",
+        priceLabel: "Average Spend (TWD NT$)",
+        descLabel: "Sensory Experience & Notes",
         imgUrlLabel: "Image Link URL",
         saveBtn: "Record Pin",
         deleteBtn: "Remove",
         editBtn: "Edit Journal",
         cancelBtn: "Cancel",
         visited: "Visited Year",
-        avgSpend: "Price Level",
+        avgSpend: "Per Person Price",
         ingredients: "Mineral Healing",
         coordinates: "Coordinates",
         latLabel: "Latitude",
@@ -242,143 +243,137 @@
       }
     };
 
+    // 真正造訪過的 6 大溫泉聖所真實資料庫 (讀取自 hotspring collection.xlsx)
     const initialWorldOnsens = [
       {
         id: "onsen-1",
-        name: { zh: "日本熊本・黑川秘湯山吹之宿", en: "Yamabuki Ryokan, Kurokawa, Japan" },
-        category: "historicRyokan",
-        lat: 33.0805,
-        lng: 131.1408,
-        visitedYear: 2023,
-        rating: 4.9,
-        price: 9800,
-        mineral: "sulfur",
-        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+        name: {
+          zh: "妙見石原莊",
+          en: "Myoken Ishiharaso"
+        },
+        category: "luxuryResort",
+        lat: 31.8491,
+        lng: 130.7303,
+        region: { zh: "鹿兒島・妙見", en: "Kagoshima · Myoken" },
+        visitedYear: 2025,
+        rating: 4.6,
+        price: 15000,
+        mineral: "carbonated",
+        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "隱匿於筑後川溪谷綠蔭之間，杉木香與溫泉蒸氣冉冉昇華，宛如步入靜謐平安時代的忘憂禪居。",
-          en: "Nestled along the serene river valley in Kumamoto, with fragrant cedar woods and pure mineral steam."
+          zh: "天降川溪谷旁的源泉，一泊二食餐廳是米其林一星，飲食評價極高。房間內有桑拿跟泉池，戶外池在溪邊，亦有室內大眾池與貸切私湯。房間腹地極大，包含書房、榻榻米、臥室、玄關更衣室等。整體設計、氣質到家具備品，都襯托出這個價位該有的極致品味。",
+          en: "A premier luxury onsen ryokan along the Amorigawa River valley in Kagoshima. Features Michelin 1-star dining, riverside outdoor baths, in-room sauna and private onsen."
         }
       },
       {
         id: "onsen-2",
-        name: { zh: "日本群馬・草津溫泉望雲老舖", en: "Boun Centennial Ryokan, Kusatsu, Japan" },
+        name: {
+          zh: "旅行人山莊",
+          en: "Ryokojin Sanso"
+        },
         category: "historicRyokan",
-        lat: 36.6206,
-        lng: 138.5960,
+        lat: 31.8906,
+        lng: 130.8258,
+        region: { zh: "霧島溫泉鄉", en: "Kirishima" },
         visitedYear: 2024,
-        rating: 4.8,
-        price: 8800,
+        rating: 4.7,
+        price: 4000,
         mineral: "sulfur",
-        image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "創業於江戶時代的百年名宿，引流日本第一酸性硫磺名湯，木造走廊散發古雅檜木芬芳。",
-          en: "Centuries-old Edo-period ryokan drawing directly from natural acidic sulfur spring sources."
+          zh: "1917年營業至今的鹿兒島百年森林溫泉旅館。最大特色為隱身於霧島國家公園原始林中的免費私人露天風呂（如「赤松之湯」、「鹿之湯」）。館內附設溫馨交誼廳、黑膠播放室與圖書館，洋溢著百年私人別墅宅邸的歷史古韻。",
+          en: "Founded in 1917, a historic centennial forest ryokan in Kirishima National Park, famed for private open-air forest baths surrounded by ancient pine woods."
         }
       },
       {
         id: "onsen-3",
-        name: { zh: "台灣台東・栗松翡翠野溪溫泉", en: "Lisong Wild Hot Springs, Taiwan" },
-        category: "wildSpring",
-        lat: 23.1978,
-        lng: 121.0378,
+        name: {
+          zh: "指宿溫泉 砂むし會館砂樂",
+          en: "Ibusuki Sand Bath Hall Saraku"
+        },
+        category: "localFeature",
+        lat: 31.2335,
+        lng: 130.6433,
+        region: { zh: "指宿", en: "Ibusuki" },
         visitedYear: 2024,
         rating: 4.8,
-        price: 1200,
-        mineral: "carbonated",
-        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+        price: 0,
+        mineral: "chloride",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "徒步溯溪抵達的天然翡翠殿堂。崖壁結滿碧綠溫泉藻與白結晶，碳酸氫鈉泉水如絲綢柔撫全身肌膚。",
-          en: "An emerald river canyon sanctuary with vibrant mineral-tinted rock walls and silky thermal water."
+          zh: "住宿附近溫泉飯店贈送免費券的海底溫泉！利用海岸天然湧出的溫泉地熱加熱沙子。當溫暖且具重量的熱砂包覆全身，只需10分鐘就能產生如三溫暖般的大量排汗效果，促進血液循環，個人體感比單純泡水還舒服。起身後亦有室內溫泉水可以浸泡。（砂浴期間不可帶手機相機）。",
+          en: "Famous natural geothermal sand baths heated by coastal thermal springs. Ten minutes of warm sand envelopment offers deep therapeutic detox and relaxation."
         }
       },
       {
         id: "onsen-4",
-        name: { zh: "美國加州・莫諾特拉弗廷野溪泉", en: "Travertine Wild Springs, Bridgeport, California" },
-        category: "wildSpring",
-        lat: 38.2566,
-        lng: -119.2045,
+        name: {
+          zh: "指宿秀水園",
+          en: "Ibusuki Shusuien"
+        },
+        category: "historicRyokan",
+        lat: 31.2328,
+        lng: 130.6425,
+        region: { zh: "指宿", en: "Ibusuki" },
         visitedYear: 2024,
-        rating: 4.7,
-        price: 900,
-        mineral: "carbonated",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+        rating: 4.5,
+        price: 6943,
+        mineral: "chloride",
+        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "座落於內華達山脈東麓高原的天然石灰華露天溫泉，眺望廣闊山谷與落日熔金。",
-          en: "Untouched travertine pools overlooking the dramatic Sierra Nevada mountains and Eastern California plains."
+          zh: "指宿知名的正統日式古蹟老舖溫泉飯店，以連年榮獲日本「料理之宿」第一的頂級精緻懷石聞名。日式庭園典雅清幽，距離隔壁熱門的砂樂砂浴會館僅數步之遙。",
+          en: "An esteemed traditional Japanese ryokan in Ibusuki celebrated for award-winning kaiseki culinary excellence and peaceful Zen garden settings."
         }
       },
       {
         id: "onsen-5",
-        name: { zh: "冰島雷克雅維克・藍湖地熱水療", en: "Blue Lagoon Retreat, Iceland" },
-        category: "luxuryResort",
-        lat: 63.8804,
-        lng: -22.4495,
-        visitedYear: 2025,
-        rating: 4.9,
-        price: 6500,
-        mineral: "chloride",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+        name: {
+          zh: "滝の上溫泉 お宿 花風月",
+          en: "Kafugetsu Onsen Ryokan, Aso"
+        },
+        category: "wildSpring",
+        lat: 33.0768,
+        lng: 131.1189,
+        region: { zh: "阿蘇・南小國", en: "Aso · Minamioguni" },
+        visitedYear: 2023,
+        rating: 4.8,
+        price: 7000,
+        mineral: "carbonated",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "黑熔岩原野中的乳藍色奇蹟。火山矽泥洗滌塵世浮躁，在極北冰原上感受地球深處的溫暖擁抱。",
-          en: "Milky cyan geothermal waters situated amidst lunar black lava fields, offering silica mud therapy."
+          zh: "在九州數一數二、能邊泡湯邊近距離感受豪邁瀑布與負離子的絕景名宿。全館僅約10間客房，全部皆為獨立離棟設計，並奢侈地附帶專屬的室內湯屋與露天風呂，每一棟都有純天然源泉。絕景「瀧見之湯」大眾露天池緊鄰天然瀑布與溪流，僅接待大人入住，極具隱私與遠離塵囂之美。",
+          en: "A secluded luxury hot spring ryokan nestled next to a rushing natural waterfall. Features detached villas with private onsen and the dramatic Takimi-no-yu."
         }
       },
       {
         id: "onsen-6",
-        name: { zh: "美國加州・大瑟爾伊薩蘭靈修溫泉", en: "Esalen Sanctuary Springs, Big Sur, USA" },
-        category: "luxuryResort",
-        lat: 36.1264,
-        lng: -121.6375,
-        visitedYear: 2024,
-        rating: 5.0,
-        price: 15500,
-        mineral: "chloride",
-        image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
-        description: {
-          zh: "懸垂於太平洋海崖邊緣的傳奇心靈聖所。夜間浸潤於湧泉之中，凝聽滔天巨浪與浩瀚銀河對話。",
-          en: "Legendary coastal hot springs perched over dramatic ocean cliffs, ideal for starry night meditation."
-        }
-      },
-      {
-        id: "onsen-7",
-        name: { zh: "紐西蘭羅托魯瓦・波利尼西亞泥漿湯坊", en: "Polynesian Spa, Rotorua, New Zealand" },
+        name: {
+          zh: "南阿蘇溫泉 癒しの里",
+          en: "Minamiaso Iyashi no Sato"
+        },
         category: "localFeature",
-        lat: -38.1368,
-        lng: 176.2497,
+        lat: 32.8251,
+        lng: 130.9822,
+        region: { zh: "南阿蘇", en: "Minamiaso" },
         visitedYear: 2023,
-        rating: 4.6,
-        price: 2900,
-        mineral: "sulfur",
-        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+        rating: 4.5,
+        price: 6000,
+        mineral: "sulfate",
+        image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80",
         description: {
-          zh: "地熱湖畔古老毛利人朝聖名泉。富含酸性與鹼性雙重泉池，釋放體內沉積壓力，重回大地母體節奏。",
-          en: "Lakeside thermal baths celebrated since Maori antiquity, featuring natural therapeutic mud and mineral pools."
-        }
-      },
-      {
-        id: "onsen-8",
-        name: { zh: "台灣台北・北投瀧乃湯百年錢湯", en: "Longnice Centennial Baths, Beitou, Taiwan" },
-        category: "localFeature",
-        lat: 25.1378,
-        lng: 121.5074,
-        visitedYear: 2023,
-        rating: 4.7,
-        price: 150,
-        mineral: "iron",
-        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
-        description: {
-          zh: "全台灣現存最古老日式木造公共浴場，引流珍貴天然青磺泉，古樸溫暖的常民療癒記憶。",
-          en: "The oldest Japanese-era public bathhouse in Beitou, utilizing rare green sulfur thermal springs."
+          zh: "坐落於雄偉阿蘇五岳南麓大自然懷抱中的療癒名所。全館客房皆為獨立離棟別莊，每間房皆附帶專屬的天然露天風呂，能自在享受源泉掛け流し的純淨硫酸鹽泉滋養。",
+          en: "Detached peaceful guest villas with private outdoor onsen baths, surrounded by the majestic natural mountain scenery of Minamiaso."
         }
       }
     ];
 
+    // 精準對應真實足跡的目的地直達捷徑 (九州 5 大名湯區域)
     const sanctuaries = [
-      { name: { zh: "台灣", en: "Taiwan" }, lat: 23.8, lng: 121.0, zoom: 8 },
-      { name: { zh: "日本", en: "Japan" }, lat: 35.6, lng: 138.5, zoom: 6 },
-      { name: { zh: "冰島", en: "Iceland" }, lat: 64.1, lng: -21.9, zoom: 7 },
-      { name: { zh: "美國加州", en: "California" }, lat: 36.5, lng: -121.8, zoom: 7 },
-      { name: { zh: "紐西蘭", en: "New Zealand" }, lat: -39.0, lng: 176.0, zoom: 7 },
+      { name: { zh: "鹿兒島・妙見", en: "Myoken" }, lat: 31.8491, lng: 130.7303, zoom: 12 },
+      { name: { zh: "霧島溫泉鄉", en: "Kirishima" }, lat: 31.8906, lng: 130.8258, zoom: 12 },
+      { name: { zh: "指宿溫泉", en: "Ibusuki" }, lat: 31.2331, lng: 130.6429, zoom: 13 },
+      { name: { zh: "阿蘇・南小國", en: "Aso" }, lat: 33.0768, lng: 131.1189, zoom: 12 },
+      { name: { zh: "南阿蘇", en: "Minamiaso" }, lat: 32.8251, lng: 130.9822, zoom: 12 },
     ];
 
     function MarketplaceMapsApp() {
@@ -403,14 +398,14 @@
         image: '',
         descZh: '',
         descEn: '',
-        lat: 25.0,
-        lng: 121.5
+        lat: 31.8,
+        lng: 130.7
       });
 
       const [searchQuery, setSearchQuery] = useState('');
       const [selectedCategory, setSelectedCategory] = useState('ALL');
       const [selectedMineral, setSelectedMineral] = useState('ALL');
-      const [priceMax, setPriceMax] = useState(25000);
+      const [priceMax, setPriceMax] = useState(16000);
       const [layerMode, setLayerMode] = useState('normal');
 
       const mapRef = useRef(null);
@@ -470,31 +465,33 @@
         });
       }, [markers, searchQuery, selectedCategory, selectedMineral, priceMax, lang]);
 
+      // 切換療癒型態時，自動調整邊界包覆所有點位
       useEffect(() => {
         if (!mapInstanceRef.current || filteredMarkers.length === 0) return;
 
         if (filteredMarkers.length > 1) {
           const bounds = L.latLngBounds(filteredMarkers.map((m) => [m.lat, m.lng]));
           mapInstanceRef.current.fitBounds(bounds, {
-            padding: [40, 40],
-            maxZoom: 9,
+            padding: [50, 50],
+            maxZoom: 11,
             animate: true,
             duration: 1.2
           });
           setSelectedMarker(null);
         } else if (filteredMarkers.length === 1) {
-          flyToLocation(filteredMarkers[0].lat, filteredMarkers[0].lng, 11);
+          flyToLocation(filteredMarkers[0].lat, filteredMarkers[0].lng, 12);
           setSelectedMarker(filteredMarkers[0]);
         }
       }, [selectedCategory, selectedMineral]);
 
+      // 搜尋時即時自動飛往目標
       useEffect(() => {
         const query = searchQuery.trim();
         if (!query || !mapInstanceRef.current) return;
 
         if (filteredMarkers.length > 0) {
           const firstMatch = filteredMarkers[0];
-          flyToLocation(firstMatch.lat, firstMatch.lng, 12);
+          flyToLocation(firstMatch.lat, firstMatch.lng, 13);
           setSelectedMarker(firstMatch);
           setIsEditing(false);
         }
@@ -506,16 +503,17 @@
           if (filteredMarkers.length > 0) {
             const target = filteredMarkers[0];
             setSelectedMarker(target);
-            flyToLocation(target.lat, target.lng, 12);
+            flyToLocation(target.lat, target.lng, 13);
           }
         }
       };
 
+      // 初始化 Leaflet 開源地圖 (以九州名湯群為中心)
       useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
           const map = L.map(mapRef.current, {
-            center: [25.0, 15.0],
-            zoom: 2,
+            center: [32.15, 130.85],
+            zoom: 8,
             minZoom: 2,
             maxZoom: 18,
             zoomControl: false,
@@ -540,7 +538,7 @@
               category: 'localFeature',
               visitedYear: 2024,
               rating: 4.8,
-              price: 3600,
+              price: 5000,
               mineral: 'sulfur',
               image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
               descZh: '',
@@ -563,6 +561,7 @@
         };
       }, []);
 
+      // 渲染地熱光暈圈與地標
       useEffect(() => {
         if (!mapInstanceRef.current || !markersLayerGroupRef.current || !heatCirclesLayerGroupRef.current) return;
 
@@ -571,16 +570,16 @@
 
         if (layerMode === 'heatmap') {
           filteredMarkers.forEach((m) => {
-            const circleRadius = (m.price * 20) + 50000;
+            const circleRadius = (m.price * 2) + 20000;
             const circle = L.circle([m.lat, m.lng], {
               radius: circleRadius,
               fillColor: m.price > 8000 ? '#BA6B50' : '#8C684E',
-              fillOpacity: 0.38,
+              fillOpacity: 0.42,
               stroke: true,
               color: '#3B4D3C',
-              weight: 1,
+              weight: 1.5,
             });
-            circle.bindTooltip(`<b>${getName(m)}</b><br/>${t.avgSpend}: NT$ ${m.price.toLocaleString()} ${t.priceUnit}`, { sticky: true });
+            circle.bindTooltip(`<b>${getName(m)}</b><br/>${t.avgSpend}: NT$ ${m.price.toLocaleString()}`, { sticky: true });
             heatCirclesLayerGroupRef.current.addLayer(circle);
           });
         } else {
@@ -639,7 +638,8 @@
         setLayerMode(mode);
         setSelectedMarker(null);
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([25.0, 15.0], 2, {
+          // 平滑拉遠至宏觀視野
+          mapInstanceRef.current.flyTo([32.15, 130.85], 7, {
             duration: 1.4
           });
         }
@@ -684,7 +684,7 @@
 
         setIsEditing(false);
         setSelectedMarker(newMarkerData);
-        flyToLocation(newMarkerData.lat, newMarkerData.lng, 10);
+        flyToLocation(newMarkerData.lat, newMarkerData.lng, 12);
       };
 
       const handleDeleteMarker = (id) => {
@@ -770,7 +770,7 @@
                         >
                           <div className="truncate pr-2">
                             <div className="font-serif text-xs font-semibold text-wellness-forest truncate">{getName(item)}</div>
-                            <div className="text-[10px] text-wellness-earth truncate">{categoryConfig[item.category]?.label}</div>
+                            <div className="text-[10px] text-wellness-earth truncate">{categoryConfig[item.category]?.label} · {item.visitedYear}{lang === 'zh' ? '年' : ''}</div>
                           </div>
                           <span className="text-[10px] font-serif text-wellness-terracotta font-semibold shrink-0">NT$ {item.price.toLocaleString()}</span>
                         </div>
@@ -916,10 +916,10 @@
                     className="w-full text-xs p-2 rounded-xl bg-wellness-sand/60 border border-wellness-sandstone text-wellness-charcoal"
                   >
                     <option value="ALL">{t.allMinerals}</option>
-                    <option value="sulfur">{t.sulfur}</option>
                     <option value="carbonated">{t.carbonated}</option>
+                    <option value="sulfur">{t.sulfur}</option>
                     <option value="chloride">{t.chloride}</option>
-                    <option value="iron">{t.iron}</option>
+                    <option value="sulfate">{t.sulfate}</option>
                   </select>
                 </div>
 
@@ -934,17 +934,17 @@
                   </div>
                   <input
                     type="range"
-                    min="500"
-                    max="30000"
+                    min="0"
+                    max="16000"
                     step="500"
                     value={priceMax}
                     onChange={(e) => setPriceMax(Number(e.target.value))}
                     className="w-full accent-wellness-moss h-1 bg-wellness-sandstone rounded-lg cursor-pointer"
                   />
                   <div className="flex justify-between text-[9px] font-serif text-wellness-earth mt-1">
-                    <span>500</span>
-                    <span>15,000</span>
-                    <span>30,000+</span>
+                    <span>免費 (NT$ 0)</span>
+                    <span>NT$ 8,000</span>
+                    <span>NT$ 15,000+</span>
                   </div>
                 </div>
 
@@ -1000,10 +1000,10 @@
                         className="w-full p-2 rounded-lg bg-wellness-sand/60 border border-wellness-sandstone"
                       >
                         <option value="ALL">{t.allMinerals}</option>
-                        <option value="sulfur">{t.sulfur}</option>
                         <option value="carbonated">{t.carbonated}</option>
+                        <option value="sulfur">{t.sulfur}</option>
                         <option value="chloride">{t.chloride}</option>
-                        <option value="iron">{t.iron}</option>
+                        <option value="sulfate">{t.sulfate}</option>
                       </select>
                     </div>
 
@@ -1014,8 +1014,8 @@
                       </div>
                       <input
                         type="range"
-                        min="500"
-                        max="30000"
+                        min="0"
+                        max="16000"
                         step="500"
                         value={priceMax}
                         onChange={(e) => setPriceMax(Number(e.target.value))}
@@ -1164,10 +1164,10 @@
                           onChange={(e) => setFormState({ ...formState, mineral: e.target.value })}
                           className="w-full p-2 rounded-lg bg-white border border-wellness-sandstone"
                         >
-                          <option value="sulfur">{t.sulfur}</option>
                           <option value="carbonated">{t.carbonated}</option>
+                          <option value="sulfur">{t.sulfur}</option>
                           <option value="chloride">{t.chloride}</option>
-                          <option value="iron">{t.iron}</option>
+                          <option value="sulfate">{t.sulfate}</option>
                         </select>
                       </div>
                     </div>
